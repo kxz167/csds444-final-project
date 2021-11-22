@@ -10,7 +10,7 @@
     # Adding the size of the original message file represented in 128 bits (limited size but is like, ^25 TBs).
 
 # hash buffer initialization: Intermediate stage block cipher
-    #Initial Vectors (IV) first 64 bits of the fractional parts of the square roots of the first 8 prime numbers.
+    # Initial Vectors (IV) first 64 bits of the fractional parts of the square roots of the first 8 prime numbers.
     # Hash buffer consists of 8 subparts for storing registers.
 
 # message processing
@@ -42,7 +42,6 @@ print("That means we need a pad of: ", padding)
 print((padding + file_size + 128) % 1024)
 
 def sha_pad(value, pad):
-    print("HELLO", pad)
     return ((value << 1) | 1 ) << (pad-1)
 
 # print(sha_pad(5, 5))
@@ -55,11 +54,18 @@ i=0
 while(reading):
     print("===============")
     i += 1
+    # Read input file as bytes
     read = input_file.read(byte_block)
+
+    # If we are at the end:
     if(len(read) < byte_block):
         print(int.from_bytes(read, 'big'))
-        read_int = ( sha_pad(int.from_bytes(read, 'big'), padding) << 128 ) | file_size
+        
+        # Pad with the correct number of bits and then add the file size.
+        read_int = (sha_pad(int.from_bytes(read, 'big'), padding) << 128 ) | file_size
+        # Set th read input back into bits.
         read = int.to_bytes(read_int, byte_block * 8, 'big')
+        # End the while loop
         reading = False
     # sum = sum | read
     print(read)
