@@ -22,7 +22,7 @@
 
 #output
 
-input_file_path = "wiki"
+input_file_path = "simple2"
 byte_block = 128 # 1024 bits
 bit_length = 2**64
 
@@ -55,12 +55,26 @@ def right_rotate_64(number, shifts):
 def append_64(original, appended):
     return (original << 64) | appended
 
-def sigma_0 (word):
-    s0 = (right_rotate_64(word, 1, 64) ^ (right_rotate_64(word, 8, 64)) ^ (word >> 7))
+def concatenate(h0, h1, h2, h3, h4, h5, h6, h7):
+    return append_64(append_64(append_64(append_64(append_64(append_64(append_64(h0, h1), h2), h3), h4), h5), h6), h7)
 
+def sigma_0 (word):
+    return (right_rotate_64(word, 1) ^ (right_rotate_64(word, 8)) ^ (word >> 7))
 
 def sigma_1 (word):
-    s1 = (right_rotate_64(word, 19, 64) ^ (right_rotate_64(word, 61, 64)) ^ (word >> 6))
+    return  (right_rotate_64(word, 19) ^ (right_rotate_64(word, 61)) ^ (word >> 6))
+
+def Sigma_0 (word):
+    return (right_rotate_64(word, 28) ^ (right_rotate_64(word, 34) ^ (right_rotate_64(word, 39))))
+
+def Sigma_1 (word):
+    return (right_rotate_64(e, 14) ^ (right_rotate_64(e, 18)) ^ (right_rotate_64(e, 41)))
+
+def ch(x,y,z):
+    return (x & y) ^ ((~x) & z)
+
+def maj(x, y, z):
+    return (x & y) ^ (x & z) ^ (y & z)
 
 input_file = open(input_file_path, 'rb')
 reading = True
@@ -85,6 +99,15 @@ h5 = initial_vector_values[5]
 h6 = initial_vector_values[6]
 h7 = initial_vector_values[7]
 
+# h0 = 0
+# h1 = 0
+# h2 = 0
+# h3 = 0
+# h4 = 0
+# h5 = 0
+# h6 = 0
+# h7 = 0
+
 i=0
 while(reading):
     print("===============")
@@ -102,6 +125,7 @@ while(reading):
         # Pad with the correct number of bits and then add the file size.
         read_int = (sha_pad(int.from_bytes(read, 'big'), padding) << 128 ) | file_size
         print("Int after padding + file size: ", read_int)
+        print(bin(read_int))
         
         # Set th read input back into bits.
         read = int.to_bytes(read_int, byte_block, 'big')
@@ -110,79 +134,96 @@ while(reading):
     # sum = sum | read
 
     print("Raw output:",read)
+    print("Binary output:", bin(int.from_bytes(read, 'big')))
     print("With length(bytes):",len(read))
 
     ## DO THE ENCODING HERE ASSUMING READ IS A 1024 BIT BLOCK
     print("--ENCODING--")
 
     words = []          # Each generated word
+    word_string = []
 
     #GENERATE WORDS
     for x in range(0,16):
         # Get certain bits from the read input
         words.append(int.from_bytes(read[x*8: x*8+8], 'big'))
+        word_string.append(read[x*8:x*8+8])
 
     for x in range(16, 80):
         # s0 := (w[i-15] rightrotate 1) xor (w[i-15] rightrotate 8) xor (w[i-15] rightshift 7)
-        s0 = (right_rotate_64(words[x-15], 1) ^ (right_rotate_64(words[x-15], 8)) ^ (words[x-15] >> 7))
+        # s0 = sigma_0(words[x-15])
         # print(s0)
         # s1 := (w[i-2] rightrotate 19) xor (w[i-2] rightrotate 61) xor (w[i-2] rightshift 6)
-        s1 = (right_rotate_64(words[x-2], 19) ^ (right_rotate_64(words[x-2], 61)) ^ (words[x-2] >> 6))
+        # s1 = sigma_1(words[x-2])
         # print(s1)
         # w[i] := w[i-16] + s0 + w[i-7] + s1
-        words.append((words[x-16] + s0 + words[x-7] + s1) % (bit_length))
-
+        words.append((words[x-16] + sigma_0(words[x-15]) + words[x-7] + sigma_1(words[x-2])) % (bit_length))
+    print("Word Strings:", word_string)
     print("Message Schedule:", words)
     print(len(words))
     # for i from 0 to 63
+
+    # Initialize working variables:
+    a = h0
+    b = h1
+    c = h2
+    d = h3
+    e = h4
+    f = h5
+    g = h6
+    h = h7
+
     #PERFORM ROUNDS: 
-    for x in range(0, 80):
+    for p in range(0, 80):
         # S1 := (e rightrotate 14) xor (e rightrotate 18) xor (e rightrotate 41)
-        S1 = (right_rotate_64(e, 14) ^ (right_rotate_64(e, 18)) ^ (right_rotate_64(e, 41)))
+        # S1 = Sigma_1(e)
         # ch := (e and f) xor ((not e) and g)
-        ch = (e & f) ^ ((~e) & g) 
+        # ch = (e & f) ^ ((~e) & g) 
         # temp1 := h + S1 + ch + k[i] + w[i]
-        temp1 = (h + S1 + ch + word_constants[x] + words[x]) % bit_length
+        temp1 = (h + Sigma_1(e) + ch(e, f, g) + word_constants[p] + words[p]) % bit_length
         # S0 := (a rightrotate 28) xor (a rightrotate 34) xor (a rightrotate 39)
-        S0 = (right_rotate_64(a, 28) ^ (right_rotate_64(a, 34) ^ (right_rotate_64(a, 38))))
+        # S0 = Sigma_0(a)
         # maj := (a and b) xor (a and c) xor (b and c)
-        maj = (a & b) ^ (a & c) ^ (b & c)
+        # maj = (a & b) ^ (a & c) ^ (b & c)
         # temp2 := S0 + maj
-        temp2 = (S0 + maj)% bit_length
+        temp2 = (Sigma_0(a) + maj(a, b, c))% bit_length
 
         # T1 = h + ch(e, f, g) sigma(e) + words[x] + word_constants[x]
- 
-        # h := g
+
         h = g
-        # g := f
         g = f
-        # f := e
         f = e
-        # e := d + temp1
         e = (d + temp1) % bit_length
-        # d := c
         d = c
-        # c := b
         c = b
-        # b := a
         b = a
-        # a := temp1 + temp2
         a = (temp1 + temp2) % bit_length
 
     # Add the compressed chunk to the current hash value:
     h0 = (h0 + a) % bit_length
-    h2 = (h2 + b) % bit_length
-    h3 = (h3 + c) % bit_length
-    h4 = (h4 + d) % bit_length
-    h1 = (h1 + e) % bit_length
+    h1 = (h1 + b) % bit_length
+    h2 = (h2 + c) % bit_length
+    h3 = (h3 + d) % bit_length
+    h4 = (h4 + e) % bit_length
     h5 = (h5 + f) % bit_length
     h6 = (h6 + g) % bit_length
     h7 = (h7 + h) % bit_length
+
+    # a = (h0 + a) % bit_length
+    # b = (h2 + b) % bit_length
+    # c = (h3 + c) % bit_length
+    # d = (h4 + d) % bit_length
+    # e = (h1 + e) % bit_length
+    # f = (h5 + f) % bit_length
+    # g = (h6 + g) % bit_length
+    # h = (h7 + h) % bit_length
     print("Hashes:", h0, h1, h2, h3, h4, h5, h6, h7)
     print("===============")
     
 print("Final Results:")
-print(append_64(append_64(append_64(append_64(append_64(append_64(append_64(h0, h1), h2), h3), h4), h5), h6), h7))
+appended_results = concatenate(h0, h1, h2, h3, h4, h5, h6, h7)
+print(appended_results)
+print(hex(appended_results))
 print("With: ", i, " Rounds")
 # print(right_rotate(864691128455136524, 2, 64))
 
