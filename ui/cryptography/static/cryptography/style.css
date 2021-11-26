@@ -9,11 +9,19 @@ form{
     flex-direction: column;
 }
 
+label{
+    text-align: center;
+}
+
 form > * {
     flex-grow: 1;
     display: flex;
+    justify-content: center;
+    margin: 10px 0px;
+}
+
+.flex-distribute{
     justify-content: space-evenly;
-    margin: 5px 0px;
 }
 
 .form-check{
