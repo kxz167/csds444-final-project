@@ -1,0 +1,43 @@
+#navbar{
+    padding: 10px 30px;
+    background-color: #222;
+    color: white;
+    display: flex;
+}
+
+#nav-left{
+    padding:5px 0px;
+}
+
+#nav-item-container{
+    flex-grow: 3;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.nav-link{
+    text-decoration: inherit;
+    color: inherit;
+}
+
+.nav-item{
+    cursor: pointer;
+    transition: .3s;
+    padding: 5px 15px;
+    border-radius: 5px;
+    background-color: #252525;
+}
+
+.nav-item:hover{
+    background-color: #333;
+}
+
+.nav-item:active{
+    color: #ddd;
+}
+
+@media screen and (max-width: 500px){
+    #nav-item-container{
+        text-align: center;
+    }
+}

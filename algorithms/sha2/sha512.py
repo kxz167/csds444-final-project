@@ -22,7 +22,7 @@
 
 #output
 
-input_file_path = "simple2"
+input_file_path = "textmsg"
 byte_block = 128 # 1024 bits
 bit_length = 2**64
 
@@ -110,7 +110,7 @@ h7 = initial_vector_values[7]
 
 i=0
 while(reading):
-    print("===============")
+    # print("===============")
     i += 1
     # if(i == 1):
     #     reading = False
@@ -120,12 +120,12 @@ while(reading):
 
     # If we are at the end, pad:
     if(len(read) < byte_block):
-        print("Int of bytes read: ", int.from_bytes(read, 'big'))
+        # print("Int of bytes read: ", int.from_bytes(read, 'big'))
         
         # Pad with the correct number of bits and then add the file size.
         read_int = (sha_pad(int.from_bytes(read, 'big'), padding) << 128 ) | file_size
-        print("Int after padding + file size: ", read_int)
-        print(bin(read_int))
+        # print("Int after padding + file size: ", read_int)
+        # print(bin(read_int))
         
         # Set th read input back into bits.
         read = int.to_bytes(read_int, byte_block, 'big')
@@ -133,12 +133,12 @@ while(reading):
         reading = False
     # sum = sum | read
 
-    print("Raw output:",read)
-    print("Binary output:", bin(int.from_bytes(read, 'big')))
-    print("With length(bytes):",len(read))
+    # print("Raw output:",read)
+    # print("Binary output:", bin(int.from_bytes(read, 'big')))
+    # print("With length(bytes):",len(read))
 
     ## DO THE ENCODING HERE ASSUMING READ IS A 1024 BIT BLOCK
-    print("--ENCODING--")
+    # print("--ENCODING--")
 
     words = []          # Each generated word
     word_string = []
@@ -158,9 +158,9 @@ while(reading):
         # print(s1)
         # w[i] := w[i-16] + s0 + w[i-7] + s1
         words.append((words[x-16] + sigma_0(words[x-15]) + words[x-7] + sigma_1(words[x-2])) % (bit_length))
-    print("Word Strings:", word_string)
-    print("Message Schedule:", words)
-    print(len(words))
+    # print("Word Strings:", word_string)
+    # print("Message Schedule:", words)
+    # print(len(words))
     # for i from 0 to 63
 
     # Initialize working variables:
@@ -217,8 +217,8 @@ while(reading):
     # f = (h5 + f) % bit_length
     # g = (h6 + g) % bit_length
     # h = (h7 + h) % bit_length
-    print("Hashes:", h0, h1, h2, h3, h4, h5, h6, h7)
-    print("===============")
+    # print("Hashes:", h0, h1, h2, h3, h4, h5, h6, h7)
+    # print("===============")
     
 print("Final Results:")
 appended_results = concatenate(h0, h1, h2, h3, h4, h5, h6, h7)
