@@ -1,10 +1,13 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.core.handlers.wsgi import WSGIRequest
 
 from django.template import loader
 
 from django.shortcuts import render
 from django import forms
+
+from .visuals.sha256_visuals import sha_visual
 
 ENCRYPTION_TYPES = (
     ("1", "SHA256"),
@@ -71,12 +74,17 @@ def upload_file(request):
         form = UploadFileForm()
     return render(request, 'upload.html', {'form': form})
 
-def text(request):
+def text(request: WSGIRequest):
     if request.method == 'POST':
         form = EncryptOptionForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'])
-            return HttpResponseRedirect('/success/url/')
+            args = request.POST
+            return render(request, 'cryptography/sha.html', {
+                    'args': args, 
+                    # Assuming, we are using on sha only
+                    'steps': sha_visual(bytes(args['plaintext'], 'utf-8'))
+                }
+            )
     else:
         enc_opt_form = EncryptOptionForm()
         text_enc_form = TextEncryptForm()
