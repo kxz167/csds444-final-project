@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'cryptography/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'global-styles.css' %}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    {% include "navbar.html"%}
+    <main>
+        <h1>SHA 256 steps</h1>
+        <p>Input: {{steps.msg}} </p>
+        <p>Padding: {{steps.padding}}</p>
+        <p>Result Hash: {{steps.hash}}</p>
+        <div id="container">
+            {% for step in steps.steps %}
+            <div class="card">
+                <div class="card-header">
+                    <a class="card-link" data-bs-toggle="collapse" href="#collapse{{forloop.counter}}">
+                        Chunk {{forloop.counter}}: 
+                    </a>
+                </div>
+                <div id="collapse{{forloop.counter}}" class="collapse card-body">
+                    <div id="myCarousel{{forloop.counter}}" class="carousel carousel-fade" data-bs-ride="carousel">
+                        <p>Initial Word: {{step.w}}</p>
+                        <!-- Wrapper for slides -->
+                        <div class="carousel-inner">
+                            {% for round in step.rounds %}
+                            <div class="carousel-item {%if forloop.counter == 1 %} active {% endif %}">
+                                Round: {{forloop.counter}}
+                                <ul>
+                                    <li>a: {{round.a}}</li>
+                                    <li>b: {{round.b}}</li>
+                                    <li>c: {{round.c}}</li>
+                                    <li>d: {{round.d}}</li>
+                                    <li>e: {{round.e}}</li>
+                                    <li>f: {{round.f}}</li>
+                                    <li>g: {{round.g}}</li>
+                                    <li>h: {{round.h}}</li>
+                                    <li>temp1: {{round.temp1}}</li>
+                                    <li>temp2: {{round.temp2}}</li>
+                                </ul>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel{{forloop.counter}}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#myCarousel{{forloop.counter}}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+
+</html>
