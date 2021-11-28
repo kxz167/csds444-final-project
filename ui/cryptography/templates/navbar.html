@@ -1,0 +1,15 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'navbar.css' %}"/>
+<div id="navbar">
+    <div id="nav-left">
+        <span><a class="nav-link" href="{% url 'index' %}">CSDS 344/444 Encrypter:</a></span>
+    </div>
+    <div id="nav-item-container">
+        <div class="nav-item">
+            <span><a class="nav-link" href="{% url 'text-encode' %}">Text Encryption</a></span>
+        </div>
+        <div class="nav-item">
+            <span><a class="nav-link" href="{% url 'file-encode' %}">File Encryption</a></span>
+        </div>
+    </div>
+</div>

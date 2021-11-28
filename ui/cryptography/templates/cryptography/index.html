@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% load static %}
+        <link rel="shortcut icon" href="#">
+        <link rel="stylesheet" href="{% static 'global-styles.css' %}"/>
+        <link rel="stylesheet" href="{% static 'cryptography/style.css' %}"/>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    </head>
+    <body>
+        <!-- {% include "navbar.html"%} -->
+        <main>
+            <h1>Encryption Options:</h1>
+            <div id="enc-option-container">
+                <a href="{% url 'text-encode' %}" class="enc-option">
+                    <div class="enc-icon">
+                        <span class="material-icons-round">
+                            notes
+                        </span>
+                    </div>
+                    <span class="enc-option-text">Text</span>
+                </a>
+                <a href="{% url 'file-encode' %}" class="enc-option">
+                    <div class="enc-icon">
+                        <span class="material-icons-round">
+                            file_upload
+                        </span>
+                    </div>
+                    <span class="enc-option-text">File</span>
+                </a>
+            </div>
+            <!-- <p>Cryptography: {{ my_value }}</p> -->
+            <!-- <form method="post">
+                {% csrf_token %}
+                <label for="algo">Select the desired encryption method:</label>
+                <select id="algo" name="algo">
+                    <option value="sha256">SHA256</option>
+                    <option value="sha512">SHA512</option>
+                    <option value="aes">AES</option>
+                    <option value="ERC">ERC</option>
+                </select>
+                <select id="method">
+                    <option value="text">Text</option>
+                    <option value="file">File</option>
+                </select>
+                <input type="file"/>
+                <input type="text"/>
+                <button type="submit">Encrypt</button>
+                Hello
+                {{form.as_p}}
+                {{ form }}
+                {% if form.algo.value %}
+                    Helo
+                {% endif %}
+                {{form.algo}}
+                <span>{{form.method.value|default_if_none:"fdsf"}}</span>
+            </form> -->
+            <!-- <hr> -->
+            <!-- <form>
+                {{form}}
+                {{form.title.value}}
+            </form> -->
+        </main>
+    </body>
+</html>
