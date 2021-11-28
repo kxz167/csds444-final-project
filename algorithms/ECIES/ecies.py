@@ -162,17 +162,19 @@ def hkdf(length: int, ikm) -> bytes:
     return okm[:length]
 
 
-def parse_string(s):
+def parse_string(s, is_filePath=False):
     """
     :param s: string to be parsed
     :returns: (R, ciphertext, tag)
     """
     tokens = s.split('&')
     R = (int(tokens[0]), int(tokens[1]))
+    if is_filePath:
+        return R, tokens[2], eval(tokens[3])
     return R, eval(tokens[2]), eval(tokens[3])
 
 
-def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, encrypt_func=fernet_encrypt):
+def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, encrypt_func=fernet_encrypt, is_filepath=False, file_name=None):
     """
     :param m: message to encrypt
     :param curve: elliptic curve
@@ -184,27 +186,68 @@ def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, encrypt_func=fern
     """
     R, r = generate_keys(curve)
     sym_enc_key, mac_key = keys_from_point(r, pub_key, curve, sym_enc_key_size, mac_key_size)
-
-    # encrypt message
-    c = encrypt_func(m, base64.b64encode(sym_enc_key))
-    # compute tag of encrypted message
+    sym_enc_key = base64.b64encode(sym_enc_key)
     hmac = HMAC(mac_key)
-    hmac.update(c)
-    tag = base64.b64encode(hmac.digest())
-    return str(R[0]) + '&' + str(R[1]) + '&' + str(c) + '&' + str(tag)
+
+    if is_filepath:
+        if file_name is None:
+            raise ValueError("Must choose a name for the output file.")
+        out = open(file_name, 'wb')
+        with open(m, 'rb') as file:
+            chunk = 0
+            while chunk != b'':
+                chunk = file.read(-1)
+                c = encrypt_func(chunk, sym_enc_key)
+                out.write(c)
+                hmac.update(c)
+            file.close()
+        out.close()
+        tag = base64.b64encode(hmac.digest())
+        return str(R[0]) + '&' + str(R[1]) + '&' + file_name + '&' + str(tag)
+    else:
+        c = encrypt_func(m, sym_enc_key)
+        hmac = HMAC(mac_key)
+        hmac.update(c)
+        tag = base64.b64encode(hmac.digest())
+        return str(R[0]) + '&' + str(R[1]) + '&' + str(c) + '&' + str(tag)
 
 
-def decrypt(cipherstring, curve, priv_key, sym_enc_key_size, mac_key_size, decrypt_func=fernet_decrypt):
-    R, c, tag = parse_string(cipherstring)
+def decrypt(cipherstring, curve, priv_key, sym_enc_key_size, mac_key_size, decrypt_func=fernet_decrypt, is_filepath=False, file_name=None):
+
+    R, c, tag = parse_string(cipherstring, is_filepath)
     sym_enc_key, mac_key = keys_from_point(priv_key, R, curve, sym_enc_key_size, mac_key_size)
-
+    sym_enc_key = base64.b64encode(sym_enc_key)
     hmac = HMAC(mac_key)
-    hmac.update(c)
-    d = base64.b64encode(hmac.digest())
-    if d != tag:
-        raise AssertionError("Computed MAC and received MAC do not match.")
-    m = decrypt_func(c, base64.b64encode(sym_enc_key))
-    return m
+
+    if is_filepath:
+        if file_name is None:
+            raise ValueError("Must choose a name for the output file.")
+        out = open(file_name, 'wb')
+        try:
+            with open(c, 'rb') as file:
+                chunk = 0
+                chunk = file.read(-1)
+                while chunk != b'':
+                    hmac.update(chunk)
+                    m = decrypt_func(chunk, sym_enc_key)
+                    out.write(m)
+                    chunk = file.read(-1)
+                file.close()
+            out.close()
+        finally:
+            file.close()
+            out.close()
+        d = base64.b64encode(hmac.digest())
+        if d != tag:
+            raise AssertionError("Computed MAC and received MAC do not match.")
+        return file_name
+    else:
+        hmac.update(c)
+        d = base64.b64encode(hmac.digest())
+        if d != tag:
+            raise AssertionError("Computed MAC and received MAC do not match.")
+        m = decrypt_func(c, sym_enc_key)
+        return m
 
 
 def keys_from_point(n, key, curve, sym_enc_key_size, mac_key_size):
@@ -235,13 +278,22 @@ def ecies(m, is_filepath=False):
         h=1,
     )
 
+    pub_key, priv_key = generate_keys(curve)
+    print("Public Key: " + str(pub_key))
+    print("Private Key: " + str(priv_key))
+
     if is_filepath:
-        return -1;
+        cstring = encrypt(m, curve, pub_key, 32, 32, is_filepath=True, file_name='encrypted')
+        R, c, tag = parse_string(cstring, is_filePath=True)
+        print("Point: " + str(R))
+        print("Ciphertext filepath: " + str(c))
+        print("MAC: " + str(tag))
+        res = decrypt(cstring, curve, priv_key, 32, 32, is_filepath=True, file_name='decrypted')
+        print("Plaintext filepath: " + res)
+
+        return
         #TODO: make this work for large files
     else:
-        pub_key, priv_key = generate_keys(curve)
-        print("Public Key: " + str(pub_key))
-        print("Private Key: " + str(priv_key))
         cstring = encrypt(m, curve, pub_key, 32, 32)
         R, c, tag = parse_string(cstring)
         print("Point: " + str(R))
