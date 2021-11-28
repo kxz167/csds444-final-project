@@ -54,4 +54,4 @@ if __name__ == '__main__':
     print("Message int:", m)
     print("Ciphertext:", c)
     print("Plaintext int:", p)
-    print("Decrypted plaintext:", util.long_to_bytes(p))
+    print("Decrypted plaintext:", util.long_to_bytes(p)) #this returns bytes rn, need a string
