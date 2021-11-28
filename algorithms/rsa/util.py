@@ -60,7 +60,7 @@ def string_to_long(m):
     return acc
 
 
-def long_to_string(num):
+def long_to_bytes(num):
     """Reference https://github.com/dlitz/pycrypto/blob/master/lib/Crypto/Util/number.py"""
 
     s = bytes('', encoding='utf8')
@@ -93,3 +93,33 @@ def mod_exp(a, e, p):
             e = e - 1
 
     return ans
+
+
+def int2bytes(number: int, fill_size: int = 0) -> bytes:
+    """
+    Convert an unsigned integer to bytes (big-endian)::
+    Does not preserve leading zeros if you don't specify a fill size.
+    :param number:
+        Integer value
+    :param fill_size:
+        If the optional fill size is given the length of the resulting
+        byte string is expected to be the fill size and will be padded
+        with prefix zero bytes to satisfy that length.
+    :returns:
+        Raw bytes (base-256 representation).
+    :raises:
+        ``OverflowError`` when fill_size is given and the number takes up more
+        bytes than fit into the block. This requires the ``overflow``
+        argument to this function to be set to ``False`` otherwise, no
+        error will be raised.
+    """
+
+    if number < 0:
+        raise ValueError("Number must be an unsigned integer: %d" % number)
+
+    bytes_required = max(1, math.ceil(number.bit_length() / 8))
+
+    if fill_size > 0:
+        return number.to_bytes(fill_size, "big")
+
+    return number.to_bytes(bytes_required, "big")
