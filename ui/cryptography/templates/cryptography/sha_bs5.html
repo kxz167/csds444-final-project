@@ -17,6 +17,9 @@
         <p>Input: {{steps.msg}} </p>
         <p>Padding: {{steps.padding}}</p>
         <p>Result Hash: {{steps.hash}}</p>
+        <a href="{% url 'download_file' converted_file %}">Download Results</a>
+        
+        <p></p>
         <div id="container">
             {% for step in steps.steps %}
             <div class="card">

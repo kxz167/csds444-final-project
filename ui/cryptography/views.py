@@ -7,6 +7,11 @@ from django.template import loader
 from django.shortcuts import render
 from django import forms
 
+from django.conf import settings
+
+import os
+import mimetypes
+
 from .visuals.sha256_visuals import sha_visual
 
 ENCRYPTION_TYPES = (
@@ -79,10 +84,16 @@ def text(request: WSGIRequest):
         form = EncryptOptionForm(request.POST, request.FILES)
         if form.is_valid():
             args = request.POST
-            return render(request, 'cryptography/sha.html', {
+            steps = sha_visual(bytes(args['plaintext'], 'utf-8'))
+            temp_file_name = 'temp_sha.txt'
+            temp_file_path = str(os.path.join(settings.BASE_DIR, f'temp/{temp_file_name}'))
+            with open(temp_file_path, 'w') as temp_file:
+                temp_file.write(steps['hash'])
+            return render(request, 'cryptography/sha_bs5.html', {
                     'args': args, 
                     # Assuming, we are using on sha only
-                    'steps': sha_visual(bytes(args['plaintext'], 'utf-8'))
+                    'steps': steps,
+                    'converted_file': temp_file_name
                 }
             )
     else:
@@ -92,4 +103,16 @@ def text(request: WSGIRequest):
 
 def file(request):
     return render(request, 'cryptography/file.html', {})
+
+def download_file(request, filename):
+    filepath = str(os.path.join(settings.BASE_DIR, f'temp/{filename}'))
+    path = open(filepath, 'r')
+    # Set the mime type
+    mime_type, _ = mimetypes.guess_type(filepath)
+    # Set the return value of the HttpResponse
+    response = HttpResponse(path, content_type=mime_type)
+    # Set the HTTP header for sending to browser
+    response['Content-Disposition'] = f"attachment; filename={filename}"
+    # Return the response value
+    return response
 
