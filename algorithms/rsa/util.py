@@ -36,8 +36,12 @@ def is_prime(x):
     return True
 
 
-def generate_prime(keysize=5):
+
+
+def generate_prime(keysize):
     num = random.randint(2 ** (keysize - 1), 2 ** (keysize))
+    if not num & 1:
+        num += 1
     while True:
         if is_prime(num):
             return num
@@ -93,50 +97,3 @@ def mod_exp(a, e, p):
             e = e - 1
 
     return ans
-
-
-def process_string(message):
-    """Convert string to long integer
-
-    Args:
-        message: string
-
-    REFERENCE
-    =========
-    https://github.com/dlitz/pycrypto/blob/master/lib/Crypto/Util/number.py
-    """
-
-    acc = 0
-    length = len(message)
-    if length % 4:
-        extra = (4 - length % 4)
-        message = bytes('\000', "utf-8") * extra + bytes(message, "utf-8")
-
-    for i in range(0, length, 4):
-        acc = (acc << 32) + unpack('>I', message[i:i+4])[0]
-
-    return acc
-
-def recover_string(number):
-    """Convert long to byte string
-
-    Args:
-            number: long integer to convert to string
-
-    REFERENCE
-    =========
-    https://github.com/dlitz/pycrypto/blob/master/lib/Crypto/Util/number.py
-    """
-
-    s = bytes('', "utf-8")
-    while number > 0:
-        s = pack('>I', number & 0xffffffff) + s
-        number = number >> 32
-
-    # remove padded zeros
-    i = 0
-    while i < len(s):
-        if s[i] != bytes('\000', "utf-8")[0]:
-            break
-        i += 1
-    return s[i:]
