@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.core.handlers.wsgi import WSGIRequest
 
 from django.template import loader
@@ -39,6 +39,13 @@ class EncryptOptionForm (forms.Form):
 class TextEncryptForm (forms.Form):
     body = forms.CharField(widget=forms.Textarea, label="body",required=True)
 
+class ResultForm (forms.Form):
+    steps = forms.JSONField()
+    step_index = forms.IntegerField()
+    args = forms.JSONField()
+
+
+
 # Create your views here.
 def index(request):
     # template = loader.get_template("cryptography/index.html")
@@ -64,15 +71,15 @@ def index(request):
     return render(request, 'cryptography/index.html', {'form': form})
 
 # From django
-def upload_file(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            handle_uploaded_file(request.FILES['file'])
-            return HttpResponseRedirect('/success/url/')
-    else:
-        form = UploadFileForm()
-    return render(request, 'upload.html', {'form': form})
+# def upload_file(request):
+#     if request.method == 'POST':
+#         form = UploadFileForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             handle_uploaded_file(request.FILES['file'])
+#             return HttpResponseRedirect('/success/url/')
+#     else:
+#         form = UploadFileForm()
+#     return render(request, 'upload.html', {'form': form})
 
 def text(request: WSGIRequest):
     if request.method == 'POST':
@@ -90,6 +97,65 @@ def text(request: WSGIRequest):
         text_enc_form = TextEncryptForm()
     return render(request, 'cryptography/text.html', {'encrypt_form':enc_opt_form, 'text_form':text_enc_form})
 
+def result(request: WSGIRequest):
+    if request.method == 'POST':
+        form = EncryptOptionForm(request.POST, request.FILES)
+        if form.is_valid():
+            args = request.POST
+            # return render(request, 'cryptography/results.html', {
+            #         'args': args,
+            #         # Assuming, we are using on sha only
+            #         'steps': sha_visual(bytes(args['plaintext'], 'utf-8'))
+            #     }
+            # )
+
+            parsed_steps = sha_visual(bytes(args['plaintext'], 'utf-8'))
+
+            # results = ResultForm(initial={
+            #     'args': args,
+            #     'step_index':0,
+            #     'steps': parsed_steps
+            # })
+
+            return render(request, 'cryptography/results.html', {
+                    # 'resultForm': results,
+                    'args': args,
+                    # 'step_index': 0,
+                    'steps': parsed_steps
+                }
+            )
+    else:
+        enc_opt_form = EncryptOptionForm()
+        text_enc_form = TextEncryptForm()
+    return render(request, 'cryptography/text.html', {'encrypt_form':enc_opt_form, 'text_form':text_enc_form})
+
+# def inc_result(request: WSGIRequest):
+#     # new_index = min(len(parsed_steps-1), request.POST.step_index + 1)
+#     new_index = 1
+#     results = ResultForm(initial={
+#                 'args': request.POST['args'],
+#                 'step_index': new_index,
+#                 'steps': request.POST['steps']
+#             })
+
+#     return HttpResponseRedirect(request, 'cryptography/results.html', {
+#                     'resultForm': results,
+#                     'args': request.POST['args'],
+#                     'step_index': 0,
+#                     'steps': request.POST['steps']
+#                 }
+#             )
+
+# def dec_result(request: WSGIRequest):
+#     new_index = max(0, request.POST.step_idx - 1)
+
+#     return render(request, 'cryptography/results.html', {
+#                     'resultForm': results,
+#                     'args': args,
+#                     'step_index': 0,
+#                     'steps': parsed_steps
+#                 }
+#             )
+
 def file(request):
     return render(request, 'cryptography/file.html', {})
-

@@ -7,8 +7,8 @@ def sha_visual(msg: bytes) -> dict:
     sha.update(msg)
     padding = pad(sha._msg_len)
     return {
-        'msg': msg,
-        'padding': padding,
+        'msg': str(msg),
+        'padding': str(padding),
         'steps': sha.steps,
         'hash': sha.hexdigest()
     }

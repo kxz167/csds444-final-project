@@ -1,9 +1,13 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('file', views.file, name="file-encode"),
-    path('text', views.text, name="text-encode")
+    path('file/', views.file, name="file-encode"),
+    path('text/', views.text, name="text-encode"),
+    path('file/result/', views.result, name="file-result"),
+    path('text/result/', views.result, name="text-result"),
+    # re_path(r'.*/inc-result', views.inc_result, name="inc-result"),
+    # re_path(r'.*/dec-result', views.dec_result, name="dec-result")
 ]

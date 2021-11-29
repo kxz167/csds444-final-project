@@ -1,0 +1,21 @@
+#buttons{
+    display: flex;
+    justify-content: space-evenly;
+    padding: 20px;
+    user-select: none;
+}
+
+#step-val{
+    overflow-wrap: anywhere;
+}
+
+.step-button{
+    width: 40px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    background-color: #eee;
+    border-radius: 5px;
+}
