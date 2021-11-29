@@ -66,7 +66,7 @@
     <!-- Here's how to read json variable in django 2.1+ -->
     {{ steps|json_script:"id" }}
     <script>
-        console.log(JSON.parse(document.getElementById('hello-data').textContent));
+        console.log({{ steps | safe }});
     </script>
 </body>
 
