@@ -18,13 +18,19 @@ class RSA:
 
         self.public_key, self.private_key = self.generate_keys()
 
+    def set_public_key(self, val):
+        self.public_key = val
+
+    def set_private_key(self, val):
+        self.private_key = val
+
     def generate_keys(self):
         g = 0
         while g != 1:
             e = random.randint(2, self.phi - 1)
             g = util.gcd(self.phi, e)
 
-        d = util.mult_inverse(e, self.n)
+        d = util.mult_inverse(e, self.phi)
 
         public_key = (e, self.n)
         private_key = (d, self.n)
@@ -44,17 +50,15 @@ class RSA:
 
 if __name__ == '__main__':
 
-    Alice = RSA()
-    Bob = RSA()
-    mess = "h"
-    m = util.string_to_long(mess)
-    c = RSA.encrypt(Alice, m, Bob.public_key)
-    p = RSA.decrypt(Bob, c)
-    print("Message:", mess)
-    print("Public key:", Bob.public_key)
-    print("Private key:", Bob.private_key)
-    print("Message int:", m)
-    print("Ciphertext:", c)
-    print("Plaintext int:", p)
-    print("Plaintext bytes:", util.recover_string(p))
-    print("Decrypted plaintext:", util.long_to_bytes(p).decode('utf8'))
+    A = RSA()
+    B = RSA()
+
+
+    m = "h"
+    m = util.string_to_long("hi")
+
+    ciphertext_B = A.encrypt(m, B.public_key)
+
+    print("cipher:", ciphertext_B)
+
+    print(util.long_to_bytes(B.decrypt(ciphertext_B)).decode())
