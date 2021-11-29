@@ -11,6 +11,7 @@ from mod import Mod
 from math import ceil
 
 from algorithms.sha2.sha256 import *
+from algorithms.AES.AES import *
 
 # will be deleted when AES integrated
 from cryptography.fernet import Fernet
@@ -67,24 +68,26 @@ def sha256(data):
     return h_sha256.hexdigest()
 
 # TEMPORARY: replace with group's AES once done
-def fernet_encrypt(m, key):
+def encrypt(m, key):
     """
     :param m: message, bytes-like
-    :param key: cryptographic key
+    :param key: cryptographic key (assumed 192 bits)
     :returns: ciphertext
     """
-    f = Fernet(key)
-    return f.encrypt(m)
+    if len(key) != 192:
+        raise ValueError("Key must be 192-bit for AES")
+    return encode_byte_list(list(m), list(key))
 
 # TEMPORARY: replace with group's AES once done
-def fernet_decrypt(c, key):
+def decrypt(c, key):
     """
     :param c: ciphertext, bytes-like
-    :param key: cryptographic key
+    :param key: cryptographic key (assumed 192 bits)
     :returns: plaintext
     """
-    f = Fernet(key)
-    return f.decrypt(c)
+    if len(key) != 192:
+        raise ValueError("Key must be 192-bit for AES")
+    return decode_byte_list(list(c), list(key))
 
 
 def generate_keys(curve):
@@ -174,7 +177,7 @@ def parse_string(s, is_filePath=False):
     return R, eval(tokens[2]), eval(tokens[3])
 
 
-def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, encrypt_func=fernet_encrypt, is_filepath=False, file_name=None):
+def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, encrypt_func=encrypt, is_filepath=False, file_name=None):
     """
     :param m: message to encrypt
     :param curve: elliptic curve
@@ -186,7 +189,6 @@ def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, encrypt_func=fern
     """
     R, r = generate_keys(curve)
     sym_enc_key, mac_key = keys_from_point(r, pub_key, curve, sym_enc_key_size, mac_key_size)
-    sym_enc_key = base64.b64encode(sym_enc_key)
     hmac = HMAC(mac_key)
 
     if is_filepath:
@@ -198,8 +200,8 @@ def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, encrypt_func=fern
             while chunk != b'':
                 chunk = file.read(-1)
                 c = encrypt_func(chunk, sym_enc_key)
-                out.write(c)
-                hmac.update(c)
+                out.write(bytes(c))
+                hmac.update(bytes(c))
             file.close()
         out.close()
         tag = base64.b64encode(hmac.digest())
@@ -207,16 +209,15 @@ def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, encrypt_func=fern
     else:
         c = encrypt_func(m, sym_enc_key)
         hmac = HMAC(mac_key)
-        hmac.update(c)
+        hmac.update(bytes(c))
         tag = base64.b64encode(hmac.digest())
         return str(R[0]) + '&' + str(R[1]) + '&' + str(c) + '&' + str(tag)
 
 
-def decrypt(cipherstring, curve, priv_key, sym_enc_key_size, mac_key_size, decrypt_func=fernet_decrypt, is_filepath=False, file_name=None):
+def decrypt(cipherstring, curve, priv_key, sym_enc_key_size, mac_key_size, decrypt_func=decrypt, is_filepath=False, file_name=None):
 
     R, c, tag = parse_string(cipherstring, is_filepath)
     sym_enc_key, mac_key = keys_from_point(priv_key, R, curve, sym_enc_key_size, mac_key_size)
-    sym_enc_key = base64.b64encode(sym_enc_key)
     hmac = HMAC(mac_key)
 
     if is_filepath:
@@ -230,7 +231,7 @@ def decrypt(cipherstring, curve, priv_key, sym_enc_key_size, mac_key_size, decry
                 while chunk != b'':
                     hmac.update(chunk)
                     m = decrypt_func(chunk, sym_enc_key)
-                    out.write(m)
+                    out.write(bytes(m))
                     chunk = file.read(-1)
                 file.close()
             out.close()
@@ -242,7 +243,7 @@ def decrypt(cipherstring, curve, priv_key, sym_enc_key_size, mac_key_size, decry
             raise AssertionError("Computed MAC and received MAC do not match.")
         return file_name
     else:
-        hmac.update(c)
+        hmac.update(bytes(c))
         d = base64.b64encode(hmac.digest())
         if d != tag:
             raise AssertionError("Computed MAC and received MAC do not match.")
@@ -283,24 +284,21 @@ def ecies(m, is_filepath=False):
     print("Private Key: " + str(priv_key))
 
     if is_filepath:
-        cstring = encrypt(m, curve, pub_key, 32, 32, is_filepath=True, file_name='encrypted')
+        cstring = encrypt(m, curve, pub_key, 192, 32, is_filepath=True, file_name='encrypted')
         R, c, tag = parse_string(cstring, is_filePath=True)
         print("Point: " + str(R))
         print("Ciphertext filepath: " + str(c))
         print("MAC: " + str(tag))
-        res = decrypt(cstring, curve, priv_key, 32, 32, is_filepath=True, file_name='decrypted')
+        res = decrypt(cstring, curve, priv_key, 192, 32, is_filepath=True, file_name='decrypted')
         print("Plaintext filepath: " + res)
-
-        return
-        #TODO: make this work for large files
     else:
-        cstring = encrypt(m, curve, pub_key, 32, 32)
+        cstring = encrypt(m, curve, pub_key, 192, 32)
         R, c, tag = parse_string(cstring)
         print("Point: " + str(R))
         print("Ciphertext: " + str(c))
         print("MAC: " + str(tag))
-        res = decrypt(cstring, curve, priv_key, 32, 32)
-        print("Plaintext: " + str(res.decode('utf-8')))
+        res = decrypt(cstring, curve, priv_key, 192, 32)
+        print("Plaintext: " + bytes(res).decode('utf-8'))
 
 
 
