@@ -15,7 +15,8 @@
             </form> -->
             <form action="result/" method="post">
                 {% csrf_token %}
-                <div>
+                {% include "algo_form.html" %}
+                <!-- <div>
                     <label for="algo">Select the desired encryption method:&nbsp;</label>
                     <select id="algo" name="algo">
                         <option value="sha256">SHA256</option>
@@ -37,7 +38,7 @@
                         <label for="id_pause_on_step">Pause on step:</label>
                         <input type="checkbox" name="pause_on_step" id="id_pause_on_step"/>
                     </div>
-                </div>
+                </div> -->
                 <textarea name="plaintext"></textarea>
                 <div>
                     <button type="submit">Encrypt!</button>
