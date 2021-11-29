@@ -55,14 +55,27 @@
             loadSubStep();
         }
 
+        //mouse enter / leave
+        function blockStepScroll(){
+            console.warn("removed");
+            document.getElementById('step-val').onwheel = null;
+        }
+
+        function enableStepScroll(){
+            console.warn("added");
+            let target = document.getElementById('step-val')
+            // target.addEventListener('wheel', captureStep);
+            // target.style.display = 'none';
+            document.getElementById('step-val').onwheel = captureStep;
+            
+            // target.style.display = 'initial';
+        }
+
         function captureSubStep($event){
             // console.warn("hi");
             // console.warn($event);
-            // $event.stopPropogation();
+            // $event.stopImmediatePropogation();
             $event.preventDefault();
-            if($event.stopPropogation){
-                $event.stopPropogation();
-            }
 
             if ($event.deltaY < 0) {
                 //Scroll up
@@ -77,11 +90,10 @@
         function captureStep($event){
             // console.warn("hi");
             // console.warn($event);
+            // $event.stopImmediatePropogation();
+
             // $event.stopPropogation();
             $event.preventDefault();
-            if($event.stopPropogation){
-                $event.stopPropogation();
-            }
             if ($event.deltaY < 0) {
                 //Scroll up
                 prevS();
@@ -96,7 +108,10 @@
             newDiv = document.createElement("div");
             newDiv.setAttribute('id', 'substep-val');
             newDiv.onwheel= captureSubStep;
-            const newContent = document.createTextNode(JSON.stringify(steps[step_index]['rounds'][step_sub_index])); //Set rounds to the right name
+            newDiv.onmouseenter = blockStepScroll;
+            newDiv.onmouseleave = enableStepScroll;
+            // const newContent = document.createTextNode(JSON.stringify(steps[step_index]['rounds'][step_sub_index])); //Set rounds to the right name
+            const newContent = document.createTextNode(JSON.stringify(steps[step_index]['rounds'][step_sub_index], null, 2)); //Set rounds to the right name
             newDiv.appendChild(newContent);
 
             const currentDiv = document.getElementById("substep-ref");
@@ -113,8 +128,8 @@
             step_index = Math.min(steps.length-1, step_index + 1);
             step_sub_index=0;
             loadStep();
-            console.warn(step_index);
-            console.warn(step_sub_index);
+            // console.warn(step_index);
+            // console.warn(step_sub_index);
         }
 
         function nextSS(){
@@ -122,16 +137,16 @@
             // WHEN UPDATED TO DICT STRUCTURE
             // step_sub_index = Math.min(steps[step_index]['substeps'].length-1, step_sub_index + 1);
             step_sub_index = Math.min(steps[step_index]['rounds'].length-1, step_sub_index + 1);
-            console.warn(step_index);
-            console.warn(step_sub_index);
+            // console.warn(step_index);
+            // console.warn(step_sub_index);
             loadSubStep();
         }
 
         function prevSS(){
             clearSubStep();
             step_sub_index = Math.max(0, step_sub_index - 1);
-            console.warn(step_index);
-            console.warn(step_sub_index);
+            // console.warn(step_index);
+            // console.warn(step_sub_index);
             loadSubStep();
         }
 
@@ -139,8 +154,8 @@
             clearStep();
             step_index = Math.max(0, step_index - 1);
             step_sub_index=0;
-            console.warn(step_index);
-            console.warn(step_sub_index);
+            // console.warn(step_index);
+            // console.warn(step_sub_index);
             loadStep();
         }
 
