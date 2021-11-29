@@ -44,14 +44,17 @@ class RSA:
 
 if __name__ == '__main__':
 
-    rsa = RSA()
-    m = util.string_to_long("hello world")
-    c = RSA.encrypt(rsa, m, rsa.public_key)
-    p = RSA.decrypt(rsa, c)
-    print("Message: hello world")
-    print("Public key:", rsa.public_key)
-    print("Private key:", rsa.private_key)
+    Alice = RSA()
+    Bob = RSA()
+    mess = "h"
+    m = util.string_to_long(mess)
+    c = RSA.encrypt(Alice, m, Bob.public_key)
+    p = RSA.decrypt(Bob, c)
+    print("Message:", mess)
+    print("Public key:", Bob.public_key)
+    print("Private key:", Bob.private_key)
     print("Message int:", m)
     print("Ciphertext:", c)
     print("Plaintext int:", p)
-    print("Decrypted plaintext:", util.long_to_bytes(p)) #this returns bytes rn, need a string
+    print("Plaintext bytes:", util.recover_string(p))
+    print("Decrypted plaintext:", util.long_to_bytes(p).decode('utf8'))
