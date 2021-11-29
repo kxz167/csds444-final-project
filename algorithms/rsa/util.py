@@ -25,25 +25,37 @@ def mult_inverse(e, n):
         return x % n
 
 
-def is_prime(x):
-    if x == 2:
+def is_prime_miller(n, k=4):
+    if n == 2:
         return True
-    elif x < 2 or x % 2 == 0:
+
+    if n == 1 or n % 2 == 0:
         return False
-    for i in range(3, int(math.sqrt(x) + 2), 2):
-        if x % i == 0:
+
+    r, s = 0, n - 1
+    while s % 2 == 0:
+        r += 1
+        s //= 2
+    for _ in range(k):
+        a = random.randint(2, n - 1)
+        x = pow(a, s, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(r):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
             return False
     return True
 
 
-
-
 def generate_prime(keysize):
-    num = random.randint(2 ** (keysize - 1), 2 ** (keysize))
-    if not num & 1:
+    num = random.getrandbits(keysize)
+    if not num & 1:  # make sure it's odd
         num += 1
     while True:
-        if is_prime(num):
+        if is_prime_miller(num):
             return num
         else:
             num = num + 1
@@ -78,22 +90,3 @@ def long_to_bytes(num):
             break
         i += 1
     return s[i:]
-
-
-def mod_exp(a, e, p):
-    ans = 1
-    a = a % p
-
-    if a == 0:
-        return 0
-
-    while e > 0:
-        if (e % 2) == 0:
-            e = e / 2
-            a = (a * a) % p
-
-        else:
-            ans = (ans * a) % p
-            e = e - 1
-
-    return ans
