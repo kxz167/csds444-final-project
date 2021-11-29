@@ -89,7 +89,7 @@ class SHA256:
         """
         assert len(chunk) == 64, "All chunks to be compressed must be 64 bytes (512 bits)"
         visual_dict = {
-            'chunk': chunk
+            'chunk': chunk.decode('utf-8', errors='ignore')
         }
         # 32 bit words
         w = [0] * 64

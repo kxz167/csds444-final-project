@@ -11,6 +11,7 @@ from django.conf import settings
 
 import os
 import mimetypes
+import json
 
 from .visuals.sha256_visuals import sha_visual
 
@@ -93,6 +94,7 @@ def text(request: WSGIRequest):
                     'args': args, 
                     # Assuming, we are using on sha only
                     'steps': steps,
+                    'json_steps': json.dumps(steps),
                     'converted_file': temp_file_name
                 }
             )
