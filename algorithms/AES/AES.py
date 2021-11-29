@@ -374,6 +374,14 @@ def generate_keys(original_key_words, N, R):
 
     return W
 
+def matrix_to_byte_list(matrix):
+    byte_list = []
+    for row in range(4):
+        for col in range(4):
+            byte_list.append(matrix[row][col])
+    return byte_list
+
+
 
 def encrypt_matrix(matrix, round_keys):
     # first round
@@ -410,28 +418,82 @@ def decrypt_matrix(matrix, round_keys):
     matrix = apply_key(matrix, round_keys, 0)
     return matrix
 
+def encode_byte_list(bytes, key=[0,0,0,0,0,0]):
+    '''
+    takes in a list of bytes to encipher and a 6 character[byte] key
+    returns an enciphered list of bytes
+    '''
+    round_keys = generate_keys(key, 6, 12)
+
+    byteroos = []
+    for byte in bytes:
+        byteroos.append(byte)
+    print(byteroos)
+
+    bytes_left = len(bytes)
+    new_bytes_list = []
+    bytes_encoded = 0
+    print(round_keys)
+
+    while bytes_left > 0:
+        # make data matrix
+        data_matrix = []
+        for i in range(4):
+            data_matrix.append([0, 0, 0, 0])
+
+        for col in range(4):
+            for row in range(4):
+                if bytes_left > 0:
+                    data_matrix[row][col] = bytes[bytes_encoded]
+                bytes_encoded -= -1
+                bytes_left -= 1
+        data_matrix = encrypt_matrix(data_matrix, round_keys)
+        bytes_to_append = matrix_to_byte_list(data_matrix)
+        for byte in bytes_to_append:
+            new_bytes_list.append(byte)
+    return new_bytes_list
+
+
+def decode_byte_list(bytes, key=[0,0,0,0,0,0]):
+    '''
+    takes in a list of enciphered bytes to decode, returns the original list
+    '''
+    round_keys = generate_keys(key, 6, 12)
+
+    bytes_left = len(bytes)
+    new_bytes_list = []
+    bytes_encoded = 0
+
+    while bytes_left > 0:
+        # make data matrix
+        data_matrix = []
+        for i in range(4):
+            data_matrix.append([0, 0, 0, 0])
+
+        for col in range(4):
+            for row in range(4):
+                if bytes_left > 0:
+                    data_matrix[col][row] = bytes[bytes_encoded]
+                bytes_encoded -= -1
+                bytes_left -= 1
+        data_matrix = decrypt_matrix(data_matrix, round_keys)
+
+        bytes_to_append = []
+        for col in range(4):
+            for row in range(4):
+                bytes_to_append.append(data_matrix[row][col])
+
+        for byte in bytes_to_append:
+            new_bytes_list.append(byte)
+    print(new_bytes_list)
+    return new_bytes_list
 
 def main():
-    # This implementation will use 6x32 bit key with 12 rounds
-    # i'th element corresponds to i'th word of starting key
-    K = []
-    for i in range(6):
-        K.append(0)
-    W = generate_keys(K, 6, 12)
-
-    # i'th element corresponds to i'th word of round keys
-    # one round key is W[4n], W[4n+1], W[4n+2], W[4n+3]
     string = "\"Hello cat uwu\" said the person to the cat"
-    data = string.encode("utf-8")
-    new_data = [data[0], data[1]]
-    print(bytes(new_data).decode("utf-8"))
-    print(data.decode("utf-8"))
-
-    data_matrix = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]
-    print("start data: ", data_matrix)
-    encrypted_data = encrypt_matrix(data_matrix, W)
-    print("encrypted data =", encrypted_data)
-    print("unencrypted data =", decrypt_matrix(encrypted_data, W))
+    data = string.encode("latin1")
+    encoded_boi = encode_byte_list(data)
+    new_data = decode_byte_list(encoded_boi)
+    print(bytes(new_data).decode("latin1"))
 
 
 if __name__ == "__main__":
