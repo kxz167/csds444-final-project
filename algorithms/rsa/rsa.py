@@ -35,7 +35,7 @@ class RSA:
 
         return public_key, private_key
 
-    def encrypt(self, input, key, is_file = False):
+    def encrypt(self, input, is_file=False, show_steps=False):
         def preprocess(input):
             if isinstance(input, str):
                 Input.input_type = "string"
@@ -49,18 +49,24 @@ class RSA:
             else:
                 raise TypeError("Not allowed type")
 
-        if is_file == True:
+        if is_file:
             with open(input, "r") as f:
-                lines = f.readlines()
+                lines = f.readlines(256)
 
-        m = preprocess(input)
+            text = ""
+            for line in lines:
+                text += line
+                m = preprocess(text)
+
+        else:
+            m = preprocess(input)
 
         try:
             assert m.bit_length() <= self.n.bit_length()
-        except(AssertionError):
+        except AssertionError:
             raise AssertionError("Message is too long")
 
-        e, n = key
+        e, n = self.public_key
         c = pow(m, e, n)
         return c
 
@@ -83,9 +89,9 @@ if __name__ == '__main__':
     A = RSA()
     B = RSA()
 
-    m = b"hello world"
+    m = "C:/Users/16507/Documents/ComputerSecurity/csds444-final-project/test.txt"
 
-    ciphertext_B = A.encrypt(m, B.public_key)
+    ciphertext_B = B.encrypt(m, is_file=True)
 
     print("Message:", m)
     print("Public key:", B.public_key)

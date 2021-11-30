@@ -76,11 +76,13 @@ def x_to_int(m):
 
     if length % 4:
         extra = (4 - length % 4)
-
-    if isinstance(m, str):
-        m = bytes('\000', encoding='utf8') * extra + bytes(m, encoding='utf8')
-    elif isinstance(m, bytes):
-        m = bytes('\000', encoding='utf8') * extra + m
+        if isinstance(m, str):
+            m = bytes('\000', encoding='utf8') * extra + bytes(m, encoding='utf8')
+        elif isinstance(m, bytes):
+            m = bytes('\000', encoding='utf8') * extra + m
+    else:
+        if isinstance(m, str):
+            m = bytes(m, encoding='utf8')
 
     for i in range(0, length, 4):
         acc = (acc << 32) + unpack('>I', m[i:i + 4])[0]
