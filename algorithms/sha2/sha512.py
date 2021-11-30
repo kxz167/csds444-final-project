@@ -21,6 +21,7 @@
     # Output is 512 bits, which is added to the previous message processing phase.
 
 #output
+import copy
 
 import copy
 
@@ -82,7 +83,6 @@ def maj(x, y, z):
 def pad(msg_len: int):
     """
     Total padding for data
-
     <msg> + \x80 (first 32 bits with the first bit = 1) + \00 (mult)
     """
     # Message is stored as bytes, calculate bit-length requires multiplication by 8
@@ -250,98 +250,13 @@ while(reading):
         # print("Int after padding + file size: ", read_int)
         # print(bin(read_int))
         
-        # Set th read input back into bits.
-        read = int.to_bytes(read_int, byte_block, 'big')
-        # End the while loop
-        reading = False
-    # sum = sum | read
+        # Update msg length in bytes
+        self._msg_len += len(msg)
+        self._cache += msg
 
-    # print("Raw output:",read)
-    # print("Binary output:", bin(int.from_bytes(read, 'big')))
-    # print("With length(bytes):",len(read))
-
-    ## DO THE ENCODING HERE ASSUMING READ IS A 1024 BIT BLOCK
-    # print("--ENCODING--")
-
-    words = []          # Each generated word
-    word_string = []
-
-    #GENERATE WORDS
-    for x in range(0,16):
-        # Get certain bits from the read input
-        words.append(int.from_bytes(read[x*8: x*8+8], 'big'))
-        word_string.append(read[x*8:x*8+8])
-
-    for x in range(16, 80):
-        # s0 := (w[i-15] rightrotate 1) xor (w[i-15] rightrotate 8) xor (w[i-15] rightshift 7)
-        # s0 = sigma_0(words[x-15])
-        # print(s0)
-        # s1 := (w[i-2] rightrotate 19) xor (w[i-2] rightrotate 61) xor (w[i-2] rightshift 6)
-        # s1 = sigma_1(words[x-2])
-        # print(s1)
-        # w[i] := w[i-16] + s0 + w[i-7] + s1
-        words.append((words[x-16] + sigma_0(words[x-15]) + words[x-7] + sigma_1(words[x-2])) % (bit_length))
-    # print("Word Strings:", word_string)
-    # print("Message Schedule:", words)
-    # print(len(words))
-    # for i from 0 to 63
-
-    # Initialize working variables:
-    a = h0
-    b = h1
-    c = h2
-    d = h3
-    e = h4
-    f = h5
-    g = h6
-    h = h7
-
-    #PERFORM ROUNDS: 
-    for p in range(0, 80):
-        # S1 := (e rightrotate 14) xor (e rightrotate 18) xor (e rightrotate 41)
-        # S1 = Sigma_1(e)
-        # ch := (e and f) xor ((not e) and g)
-        # ch = (e & f) ^ ((~e) & g) 
-        # temp1 := h + S1 + ch + k[i] + w[i]
-        temp1 = (h + Sigma_1(e) + ch(e, f, g) + word_constants[p] + words[p]) % bit_length
-        # S0 := (a rightrotate 28) xor (a rightrotate 34) xor (a rightrotate 39)
-        # S0 = Sigma_0(a)
-        # maj := (a and b) xor (a and c) xor (b and c)
-        # maj = (a & b) ^ (a & c) ^ (b & c)
-        # temp2 := S0 + maj
-        temp2 = (Sigma_0(a) + maj(a, b, c))% bit_length
-
-        # T1 = h + ch(e, f, g) sigma(e) + words[x] + word_constants[x]
-
-        h = g
-        g = f
-        f = e
-        e = (d + temp1) % bit_length
-        d = c
-        c = b
-        b = a
-        a = (temp1 + temp2) % bit_length
-
-    # Add the compressed chunk to the current hash value:
-    h0 = (h0 + a) % bit_length
-    h1 = (h1 + b) % bit_length
-    h2 = (h2 + c) % bit_length
-    h3 = (h3 + d) % bit_length
-    h4 = (h4 + e) % bit_length
-    h5 = (h5 + f) % bit_length
-    h6 = (h6 + g) % bit_length
-    h7 = (h7 + h) % bit_length
-
-    # a = (h0 + a) % bit_length
-    # b = (h2 + b) % bit_length
-    # c = (h3 + c) % bit_length
-    # d = (h4 + d) % bit_length
-    # e = (h1 + e) % bit_length
-    # f = (h5 + f) % bit_length
-    # g = (h6 + g) % bit_length
-    # h = (h7 + h) % bit_length
-    # print("Hashes:", h0, h1, h2, h3, h4, h5, h6, h7)
-    # print("===============")
+        while len(self._cache) >= 128:
+            self.__compress(self._cache[:128])
+            self._cache = self._cache[128:]
     
 print("Final Results:")
 appended_results = concatenate(h0, h1, h2, h3, h4, h5, h6, h7)

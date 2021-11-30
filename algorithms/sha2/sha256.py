@@ -24,6 +24,9 @@ K32 = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
 H32 = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
       0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]
 
+# WORD size in bytes
+WORD_SIZE = 4
+
 def ch(x, y, z):
     return (x & y) ^ ((~x) & z)
 
@@ -67,11 +70,17 @@ def pad(msg_len: int):
 
 class SHA256:
 
-    def __init__(self):
+    def __init__(self, visual=False):
+
+        # UI Mode?
+        self.visual = visual
+        self.steps = []
+
         self._cache = b''
         self._msg_len = 0
         self._H = copy.deepcopy(H32)
         self._K = copy.deepcopy(K32)
+        self.rounds = 0
 
 
     def __compress(self, chunk: bytes) -> None:
@@ -79,16 +88,20 @@ class SHA256:
         Main Compression algorithm
         """
         assert len(chunk) == 64, "All chunks to be compressed must be 64 bytes (512 bits)"
+        visual_dict = {}
         # 32 bit words
         w = [0] * 64
 
         # copy 512 bit chunk into the first 16 words of the w buffer
-        w[:16] = [int.from_bytes(chunk[i *4:i*4+4], 'big') for i in range(16)]
+        w[:16] = [int.from_bytes(chunk[i * WORD_SIZE :i * WORD_SIZE + WORD_SIZE], 'big') for i in range(16)]
 
         for i in range(16, 64):
             w[i] = (w[i - 16] + sigma_0(w[i - 15]) + w[i - 7] + sigma_1(w[i - 2])) & F32
-        
+
         a, b, c, d, e, f, g, h = self._H
+        if self.visual:
+            visual_dict['w'] = w
+            visual_dict['rounds'] = []
 
         for i in range(64):
             temp1 = (h + Sigma_1(e) + ch(e, f, g) + self._K[i] + w[i]) & F32
@@ -104,9 +117,23 @@ class SHA256:
             b = a
 
             a = (temp1 + temp2) & F32
-        
+            if self.visual:
+                visual_dict['rounds'].append({
+                    'a': a,
+                    'b': b,
+                    'c': c,
+                    'd': d,
+                    'e': e,
+                    'f': f,
+                    'g': g,
+                    'h': h,
+                    'temp1': temp1,
+                    'temp2': temp2
+                })
         for i, (h, x) in enumerate(zip(self._H, [a, b, c, d, e, f, g, h])):
             self._H[i] = (h + x) & F32
+        if self.visual:
+            self.steps.append(visual_dict)
 
     def update(self, msg: bytes) -> None:
         """
@@ -122,7 +149,7 @@ class SHA256:
         while len(self._cache) >= 64:
             self.__compress(self._cache[:64])
             self._cache = self._cache[64:]
-
+    
     def digest(self) -> bytes:
         sha_copy = copy.deepcopy(self)
 
@@ -131,14 +158,14 @@ class SHA256:
 
         hash_buffer = b''
         for h in sha_copy._H:
-            hash_buffer += h.to_bytes(4, 'big')
+            hash_buffer += h.to_bytes(WORD_SIZE, 'big')
         return hash_buffer
 
     def hexdigest(self) -> str:
         return self.digest().hex()
 
 if __name__ == '__main__':
-    h_sha256 = SHA256()
+    h_sha256 = SHA256(visual=True)
  
     # open file for reading in binary mode
     with open('textmsg','rb') as file:
