@@ -35,18 +35,31 @@ class RSA:
 
         return public_key, private_key
 
-    def encrypt(self, input, key):
+    def encrypt(self, input, key, is_file = False):
         def preprocess(input):
             if isinstance(input, str):
                 Input.input_type = "string"
-                return util.string_to_int(input)
+                return util.x_to_int(input)
+            elif isinstance(input, bytes):
+                Input.input_type = "bytes"
+                return util.x_to_int(input)
             elif isinstance(input, int):
                 Input.input_type = "int"
                 return input
             else:
                 raise TypeError("Not allowed type")
 
+        if is_file == True:
+            with open(input, "r") as f:
+                lines = f.readlines()
+
         m = preprocess(input)
+
+        try:
+            assert m.bit_length() <= self.n.bit_length()
+        except(AssertionError):
+            raise AssertionError("Message is too long")
+
         e, n = key
         c = pow(m, e, n)
         return c
@@ -58,6 +71,8 @@ class RSA:
         def postprocess(output):
             if Input.input_type == "string":
                 return util.int_to_bytes(output).decode()
+            elif Input.input_type == "bytes":
+                return util.int_to_bytes(output)
             elif Input.input_type == "int":
                 return output
 
@@ -68,12 +83,11 @@ if __name__ == '__main__':
     A = RSA()
     B = RSA()
 
-    m = "hello world"
+    m = b"hello world"
 
     ciphertext_B = A.encrypt(m, B.public_key)
 
     print("Message:", m)
-    print("Message int:", m)
     print("Public key:", B.public_key)
     print("Private key:", B.private_key)
     print("cipher:", ciphertext_B)

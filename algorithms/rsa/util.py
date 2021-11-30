@@ -68,14 +68,19 @@ def generate_prime(keysize):
             num = num + 2
 
 
-def string_to_int(m):
+def x_to_int(m):
     """Reference https://github.com/dlitz/pycrypto/blob/master/lib/Crypto/Util/number.py"""
 
     acc = 0
     length = len(m)
+
     if length % 4:
         extra = (4 - length % 4)
+
+    if isinstance(m, str):
         m = bytes('\000', encoding='utf8') * extra + bytes(m, encoding='utf8')
+    elif isinstance(m, bytes):
+        m = bytes('\000', encoding='utf8') * extra + m
 
     for i in range(0, length, 4):
         acc = (acc << 32) + unpack('>I', m[i:i + 4])[0]
