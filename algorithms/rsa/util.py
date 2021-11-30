@@ -10,11 +10,17 @@ def gcd(a, b):
 
 
 def egcd(a, b):
-    if a == 0:
-        return (b, 0, 1)
-    else:
-        g, x, y = egcd(b % a, a)
-        return g, y - (b // a) * x, x
+    xprev, x = 0, 1
+    yprev, y = 1, 0
+
+    while a:
+        q = b // a
+        x, xprev = xprev - q * x, x
+        y, yprev = yprev - q * y, y
+        a, b = b % a, a
+
+    return b, xprev, yprev
+
 
 
 def mult_inverse(e, n):
@@ -26,6 +32,10 @@ def mult_inverse(e, n):
 
 
 def is_prime_miller(n, k=4):
+    """
+    Source: https://gist.github.com/Ayrx/5884790
+    4 rounds justified by: https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf#page=80
+    """
     if n == 2:
         return True
 

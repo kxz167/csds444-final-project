@@ -4,7 +4,7 @@ import util
 
 class RSA:
 
-    def __init__(self, size=1024):
+    def __init__(self, size=2048):
         self.bit_size = size
 
         self.p = util.generate_prime(self.bit_size)
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     B = RSA()
 
 
-    m = "hel"
+    m = "hello world"
     print("Message:", m)
 
     m = util.string_to_long(m)
