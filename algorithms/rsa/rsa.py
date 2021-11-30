@@ -5,7 +5,7 @@ import Input
 
 class RSA:
 
-    def __init__(self, size=2048):
+    def __init__(self, size=1024):
         self.bit_size = size
 
         self.p = util.generate_prime(self.bit_size)
@@ -101,17 +101,17 @@ class RSA:
 
         return p_list[0]
 
+    def rsa(self, input, is_file=False, show_steps=False):
+        if is_file:
+            cipher = self.encrypt(input, is_file=True)
+            print(cipher)
+            print(self.decrypt(cipher))
+        else:
+            cipher = self.encrypt(input, is_file=False)
+            print(cipher)
+            print(self.decrypt(cipher))
+
 
 if __name__ == '__main__':
-    A = RSA()
-    B = RSA()
-
-    message = "C:/Users/16507/Documents/ComputerSecurity/csds444-final-project/test.txt"
-
-    ciphertext_B = B.encrypt(message, is_file=True)
-
-    print("Message:", message)
-    print("Public key:", B.public_key)
-    print("Private key:", B.private_key)
-    print("cipher:", ciphertext_B)
-    print("Plaintext:", B.decrypt(ciphertext_B))
+    message = "C:/Users/16507/Documents/ComputerSecurity/csds444-final-project/algorithms/rsa/test.txt"
+    RSA().rsa(message, is_file=True)

@@ -57,7 +57,7 @@ def is_prime_miller(n, k=4):
     return True
 
 
-def generate_prime(keysize):
+def generate_prime(keysize=2048):
     num = random.getrandbits(keysize)
     if not num & 1:
         num += 1
