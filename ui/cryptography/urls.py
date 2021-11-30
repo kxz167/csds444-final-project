@@ -8,7 +8,7 @@ urlpatterns = [
     path('text/', views.text, name="text-encode"),
     path('file/result/', views.result, name="file-result"),
     path('text/result/', views.result, name="text-result"),
-    path('downloads/<filename>/', views.download_file, name='download_file')
+    path('downloads/<filepath>', views.download_file, name='download_file')
     # re_path(r'.*/inc-result', views.inc_result, name="inc-result"),
     # re_path(r'.*/dec-result', views.dec_result, name="dec-result")
 ]

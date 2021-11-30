@@ -184,21 +184,20 @@
 </head>
 
 <body onload="loadStep()">
-    {{testval}}
     {% include "navbar.html" %}
     <main>
-        {{resultForm}}
-        <h1>{{resultForm.args.value.algo}} Encryption:</h1>
+        <h1>Encryption: {{algorithm}}</h1>
         <div id="results">
             <h2>Results:</h2>
-            <p>Input: {{input}} </p>
-            <!-- <p>Padding: {{steps.padding}}</p> -->
-            <p>Result: {{output}}</p>
-            <a href="{% url 'download_file' converted_file %}">Download Results</a>
-            <p></p>
+            <p>Result: {{results.text}}</p>
+            {% if results.files %}
+                {% for key, filepath in results.files.items %}
+                    <a href="{% url 'download_file' filepath %}">{{key}}</a>
+                    <p></p>
+                {% endfor %}
+            {% endif %}
         </div>
-        <!-- {{args}} -->
-        {% if args.show_step %}
+        {% if showstep %}
         <div id="steps"> 
             <h2>Steps:</h2>
             <div id="step-reference"></div>

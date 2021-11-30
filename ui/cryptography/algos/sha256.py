@@ -173,8 +173,6 @@ class SHA256:
     
     @property
     def steps(self):
-        if not self.visual:
-            raise NotImplementedError("SHA-256 is not in visual mode")
         sha_copy = copy.deepcopy(self)
 
         # Append additional padded bits
