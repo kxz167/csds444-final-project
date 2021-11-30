@@ -9,13 +9,14 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?autoload=true&amp;skin=sunburst&amp;lang=css" defer></script>
     <script>
         testval = "sdfjidsf";
         index = 0;
 
         step_index = 0;
         step_sub_index = 0;
-        steps = {{steps|safe}}.steps;
+        steps = {{steps|safe}};
         console.warn(steps);
 
         function printIndex(){
@@ -47,7 +48,7 @@
             stepContainer.setAttribute('id', 'step-val-container');
             stepContainer.onwheel = captureStep;
             
-            const newContent = document.createTextNode(JSON.stringify(steps[step_index]['chunk'])); //Set chunk to the right name
+            const newContent = document.createTextNode(JSON.stringify(steps[step_index]['msg'])); //Set chunk to the right name
             stepContainer.appendChild(newContent);
             newDiv.appendChild(stepContainer);
             
@@ -89,7 +90,10 @@
             newDiv.onmouseenter = blockStepScroll;
             newDiv.onmouseleave = enableStepScroll;
             // const newContent = document.createTextNode(JSON.stringify(steps[step_index]['rounds'][step_sub_index])); //Set rounds to the right name
-            const newContent = document.createTextNode(JSON.stringify(steps[step_index]['rounds'][step_sub_index], null, 2)); //Set rounds to the right name
+            let newContent = document.createElement('code')
+            // newContent.className = 'prettyprint'
+            newContent.innerText = steps[step_index]['substeps'][step_sub_index]; //Set rounds to the right name
+            console.log(newContent.innerHTML)
             newDiv.appendChild(newContent);
             stepSubContainer.appendChild(newDiv);
 
@@ -149,12 +153,12 @@
         }
 
         function nextSS(){
-            if(step_sub_index < steps[step_index]['rounds'].length - 1){
+            if(step_sub_index < steps[step_index]['substeps'].length - 1){
                 
                 clearSubStep()
                 // WHEN UPDATED TO DICT STRUCTURE
                 // step_sub_index = Math.min(steps[step_index]['substeps'].length-1, step_sub_index + 1);
-                step_sub_index = Math.min(steps[step_index]['rounds'].length-1, step_sub_index + 1);
+                step_sub_index = Math.min(steps[step_index]['substeps'].length-1, step_sub_index + 1);
                 loadSubStep();
             }
         }
@@ -187,11 +191,13 @@
         <h1>{{resultForm.args.value.algo}} Encryption:</h1>
         <div id="results">
             <h2>Results:</h2>
-            <p>Input: {{steps.msg}} </p>
-            <p>Padding: {{steps.padding}}</p>
-            <p>Result Hash: {{steps.hash}}</p>
+            <p>Input: {{input}} </p>
+            <!-- <p>Padding: {{steps.padding}}</p> -->
+            <p>Result: {{output}}</p>
+            <a href="{% url 'download_file' converted_file %}">Download Results</a>
+            <p></p>
         </div>
-        {{args}}
+        <!-- {{args}} -->
         {% if args.show_step %}
         <div id="steps"> 
             <h2>Steps:</h2>

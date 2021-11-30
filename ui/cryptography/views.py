@@ -7,7 +7,10 @@ from django.template import loader
 from django.shortcuts import render
 from django import forms
 
-from .visuals.sha256_visuals import sha_visual
+from .visuals.visuals import sha256_visual, sha512_visual
+import os
+import mimetypes
+from django.conf import settings
 
 ENCRYPTION_TYPES = (
     ("1", "SHA256"),
@@ -89,7 +92,7 @@ def text(request: WSGIRequest):
             return render(request, 'cryptography/sha.html', {
                     'args': args, 
                     # Assuming, we are using on sha only
-                    'steps': sha_visual(bytes(args['plaintext'], 'utf-8'))
+                    'steps': sha256_visual(bytes(args['plaintext'], 'utf-8'))
                 }
             )
     else:
@@ -102,25 +105,30 @@ def result(request: WSGIRequest):
         form = EncryptOptionForm(request.POST, request.FILES)
         if form.is_valid():
             args = request.POST
-            # return render(request, 'cryptography/results.html', {
-            #         'args': args,
-            #         # Assuming, we are using on sha only
-            #         'steps': sha_visual(bytes(args['plaintext'], 'utf-8'))
-            #     }
-            # )
 
-            parsed_steps = sha_visual(bytes(args['plaintext'], 'utf-8'))
+            visual_func = {
+                'sha256': sha256_visual,
+                'sha512': sha512_visual
+            }
 
-            # results = ResultForm(initial={
-            #     'args': args,
-            #     'step_index':0,
-            #     'steps': parsed_steps
-            # })
+            visual_temp_name = {
+                'sha256': 'temp_sha256.txt',
+                'sha512': 'temp_sha512.txt'
+            }
+
+            parsed_steps, output = visual_func[args['algo']](bytes(args['plaintext'], 'utf-8'))
+
+
+            temp_file_name = visual_temp_name[args['algo']]
+            temp_file_path = str(os.path.join(os.path.join(settings.BASE_DIR, 'temp'), temp_file_name))
+            with open(temp_file_path, 'w') as temp_file:
+                temp_file.write(output)
 
             return render(request, 'cryptography/results.html', {
-                    # 'resultForm': results,
                     'args': args,
-                    # 'step_index': 0,
+                    'input': args['plaintext'],
+                    'output': output,
+                    'converted_file': temp_file_name,
                     'steps': parsed_steps
                 }
             )
@@ -128,6 +136,18 @@ def result(request: WSGIRequest):
         enc_opt_form = EncryptOptionForm()
         text_enc_form = TextEncryptForm()
     return render(request, 'cryptography/text.html', {'encrypt_form':enc_opt_form, 'text_form':text_enc_form})
+
+def download_file(request, filename):
+    filepath = str(os.path.join(settings.BASE_DIR, f'temp/{filename}'))
+    path = open(filepath, 'r')
+    # Set the mime type
+    mime_type, _ = mimetypes.guess_type(filepath)
+    # Set the return value of the HttpResponse
+    response = HttpResponse(path, content_type=mime_type)
+    # Set the HTTP header for sending to browser
+    response['Content-Disposition'] = f"attachment; filename={filename}"
+    # Return the response value
+    return response
 
 # def inc_result(request: WSGIRequest):
 #     # new_index = min(len(parsed_steps-1), request.POST.step_index + 1)
