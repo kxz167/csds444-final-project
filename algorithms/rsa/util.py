@@ -68,7 +68,7 @@ def generate_prime(keysize):
             num = num + 2
 
 
-def string_to_long(m):
+def string_to_int(m):
     """Reference https://github.com/dlitz/pycrypto/blob/master/lib/Crypto/Util/number.py"""
 
     acc = 0
@@ -83,7 +83,7 @@ def string_to_long(m):
     return acc
 
 
-def long_to_bytes(num):
+def int_to_bytes(num):
     """Reference https://github.com/dlitz/pycrypto/blob/master/lib/Crypto/Util/number.py"""
 
     s = bytes('', encoding='utf8')

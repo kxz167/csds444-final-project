@@ -1,10 +1,11 @@
 import random
 import util
+import Input
 
 
 class RSA:
 
-    def __init__(self, size=2048):
+    def __init__(self, size=512):
         self.bit_size = size
 
         self.p = util.generate_prime(self.bit_size)
@@ -34,7 +35,18 @@ class RSA:
 
         return public_key, private_key
 
-    def encrypt(self, m: int, key):
+    def encrypt(self, input, key):
+        def preprocess(input):
+            if isinstance(input, str):
+                Input.input_type = "string"
+                return util.string_to_int(input)
+            elif isinstance(input, int):
+                Input.input_type = "int"
+                return input
+            else:
+                raise TypeError("Not allowed type")
+
+        m = preprocess(input)
         e, n = key
         c = pow(m, e, n)
         return c
@@ -42,25 +54,27 @@ class RSA:
     def decrypt(self, c: int):
         d, n = self.private_key
         p = pow(c, d, n)
-        return p
+
+        def postprocess(output):
+            if Input.input_type == "string":
+                return util.int_to_bytes(output).decode()
+            elif Input.input_type == "int":
+                return output
+
+        return postprocess(p)
 
 
 if __name__ == '__main__':
     A = RSA()
     B = RSA()
 
-    m = "lalalalalalalalaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    print("Message:", m)
-
-    m = util.string_to_long(m)
-
-    print("Message int:", m)
-    print("Public key:", B.public_key)
-    print("Private key:", B.private_key)
+    m = "hello world"
 
     ciphertext_B = A.encrypt(m, B.public_key)
 
+    print("Message:", m)
+    print("Message int:", m)
+    print("Public key:", B.public_key)
+    print("Private key:", B.private_key)
     print("cipher:", ciphertext_B)
-    print("plain int:", B.decrypt(ciphertext_B))
-
-    print(util.long_to_bytes(B.decrypt(ciphertext_B)))
+    print("Plaintext:", B.decrypt(ciphertext_B))
