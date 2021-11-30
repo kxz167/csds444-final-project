@@ -1,5 +1,4 @@
 import random
-import math
 from struct import pack, unpack
 
 
@@ -10,17 +9,15 @@ def gcd(a, b):
 
 
 def egcd(a, b):
-    xprev, x = 0, 1
-    yprev, y = 1, 0
-
-    while a:
-        q = b // a
-        x, xprev = xprev - q * x, x
-        y, yprev = yprev - q * y, y
-        a, b = b % a, a
-
-    return b, xprev, yprev
-
+    """
+    Source: https://en.wikibooks.org/wiki/Algorithm_Implementation/Mathematics/Extended_Euclidean_algorithm#Iterative_algorithm_3
+    """
+    x0, x1, y0, y1 = 0, 1, 1, 0
+    while a != 0:
+        (q, a), b = divmod(b, a), a
+        y0, y1 = y1, y0 - q * y1
+        x0, x1 = x1, x0 - q * x1
+    return b, x0, y0
 
 
 def mult_inverse(e, n):
@@ -62,13 +59,13 @@ def is_prime_miller(n, k=4):
 
 def generate_prime(keysize):
     num = random.getrandbits(keysize)
-    if not num & 1:  # make sure it's odd
+    if not num & 1:
         num += 1
     while True:
         if is_prime_miller(num):
             return num
         else:
-            num = num + 1
+            num = num + 2
 
 
 def string_to_long(m):
