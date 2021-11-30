@@ -5,7 +5,7 @@ import Input
 
 class RSA:
 
-    def __init__(self, size=512):
+    def __init__(self, size=2048):
         self.bit_size = size
 
         self.p = util.generate_prime(self.bit_size)
@@ -49,31 +49,34 @@ class RSA:
             else:
                 raise TypeError("Not allowed type")
 
+        m_list = []
+
         if is_file:
             with open(input, "r") as f:
-                lines = f.readlines(256)
-
-            text = ""
-            for line in lines:
-                text += line
-                m = preprocess(text)
+                while True:
+                    chunk = f.read(256)
+                    if not chunk:
+                        break
+                    m = preprocess(chunk)
+                    m_list.append(m)
 
         else:
-            m = preprocess(input)
+            m_list.append(preprocess(input))
 
         try:
-            assert m.bit_length() <= self.n.bit_length()
+            for m in m_list:
+                assert m.bit_length() <= self.n.bit_length()
         except AssertionError:
             raise AssertionError("Message is too long")
 
         e, n = self.public_key
-        c = pow(m, e, n)
-        return c
+        c_list = []
+        for m in m_list:
+            c = pow(m, e, n)
+            c_list.append(c)
+        return c_list
 
-    def decrypt(self, c: int):
-        d, n = self.private_key
-        p = pow(c, d, n)
-
+    def decrypt(self, c_list: list):
         def postprocess(output):
             if Input.input_type == "string":
                 return util.int_to_bytes(output).decode()
@@ -82,18 +85,32 @@ class RSA:
             elif Input.input_type == "int":
                 return output
 
-        return postprocess(p)
+        d, n = self.private_key
+
+        p_list = []
+
+        for c in c_list:
+            p = pow(c, d, n)
+            p_list.append(postprocess(p))
+
+        if len(p_list) != 1:
+            val = ""
+            for plaintext in p_list:
+                val += plaintext
+            return val
+
+        return p_list[0]
 
 
 if __name__ == '__main__':
     A = RSA()
     B = RSA()
 
-    m = "C:/Users/16507/Documents/ComputerSecurity/csds444-final-project/test.txt"
+    message = "C:/Users/16507/Documents/ComputerSecurity/csds444-final-project/test.txt"
 
-    ciphertext_B = B.encrypt(m, is_file=True)
+    ciphertext_B = B.encrypt(message, is_file=True)
 
-    print("Message:", m)
+    print("Message:", message)
     print("Public key:", B.public_key)
     print("Private key:", B.private_key)
     print("cipher:", ciphertext_B)
