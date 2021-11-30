@@ -180,19 +180,16 @@
 </head>
 
 <body onload="loadStep()">
-    {{testval}}
     {% include "navbar.html" %}
     <main>
-        {{resultForm}}
-        <h1>{{resultForm.args.value.algo}} Encryption:</h1>
+        <h1>{{algorithm}} Encryption:</h1>
         <div id="results">
             <h2>Results:</h2>
             <p>Input: {{steps.msg}} </p>
             <p>Padding: {{steps.padding}}</p>
             <p>Result Hash: {{steps.hash}}</p>
         </div>
-        {{args}}
-        {% if args.show_step %}
+        {% if showstep %}
         <div id="steps"> 
             <h2>Steps:</h2>
             <div id="step-reference"></div>

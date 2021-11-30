@@ -26,6 +26,7 @@ form > * {
 
 .form-check{
     display: flex;
+    align-items: center;
 }
 
 textarea{

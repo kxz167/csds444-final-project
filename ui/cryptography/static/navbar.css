@@ -13,9 +13,10 @@
     flex-grow: 3;
     display: flex;
     justify-content: space-evenly;
+    text-align: center;
 }
 
-.nav-link{
+.nav-link, .nav-link:hover{
     text-decoration: inherit;
     color: inherit;
 }
@@ -36,8 +37,8 @@
     color: #ddd;
 }
 
-@media screen and (max-width: 500px){
+/* @media screen and (max-width: 520px){
     #nav-item-container{
         text-align: center;
     }
-}
+} */
