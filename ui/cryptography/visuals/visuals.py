@@ -5,6 +5,7 @@ from ..algos.drivers import *
 from ..algos.sha256 import SHA256
 from ..algos.sha512 import SHA512
 from ..algos.ECIES.ecies import *
+from ..algos.rsa.rsa import RSA
 from django.conf import settings
 
 
@@ -51,6 +52,9 @@ def sha512_visual(msg: str, is_file=False, showstep=False):
 
 def ecies_visual(msg: str, is_file: bool=False, showstep: bool=False):
     return to_string(ecies(msg, is_filepath=is_file))
+
+def rsa_visual(msg: str, is_file: bool=False, showstep: bool=False):
+    return RSA().rsa(msg, is_file=is_file)
 
 def aes_method(msg_path, key_path, method):
     if method == 'decode':

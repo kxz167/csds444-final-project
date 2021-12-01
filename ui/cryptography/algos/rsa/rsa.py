@@ -54,7 +54,7 @@ class RSA:
         if is_file:
             with open(input, "r") as f:
                 while True:
-                    chunk = f.read(256)
+                    chunk = f.read(128)
                     if not chunk:
                         break
                     m = preprocess(chunk)
@@ -74,9 +74,14 @@ class RSA:
         for m in m_list:
             c = pow(m, e, n)
             c_list.append(c)
-        return c_list
 
-    def decrypt(self, c_list: list):
+        if is_file:
+            with open("encrypted.txt", "a") as f:
+                for c in c_list:
+                    f.write(str(c))
+        return m_list, c_list
+
+    def decrypt(self, c_list: list, is_file = False):
         def postprocess(output):
             if Input.input_type == "string":
                 return util.int_to_bytes(output).decode()
@@ -93,31 +98,35 @@ class RSA:
             p = pow(c, d, n)
             p_list.append(postprocess(p))
 
-        if len(p_list) != 1:
-            val = ""
-            for plaintext in p_list:
-                val += plaintext
-            return val
+        val = ""
+        for plaintext in p_list:
+            val += plaintext
 
-        return p_list[0]
+        if is_file:
+            with open("decrypted.txt", "a") as f:
+                f.write(val)
+        return val
 
     def rsa(self, input, is_file=False, show_steps=False):
+        results = {}
+        mint_list, cipher = self.encrypt(input, is_file)
+        plaintext = self.decrypt(cipher, is_file)
+        results['string_text'] = 'Ciphertext: {}\n Plaintext: {}'.format(cipher, plaintext)
         if is_file:
-            cipher = self.encrypt(input, is_file=True)
-            print(cipher)
-            print(self.decrypt(cipher))
-        else:
-            cipher = self.encrypt(input, is_file=False)
-            print(cipher)
-            print(self.decrypt(cipher))
-
-
-if __name__ == '__main__':
-    message = "C:/Users/16507/Documents/ComputerSecurity/csds444-final-project/algorithms/rsa/test.txt"
-    rsa = RSA()
-    cipher = rsa.encrypt('hello')
-    private_key = rsa.private_key
-    new_rsa = RSA()
-    new_rsa.private_key = private_key
-    print(private_key)
-    print(new_rsa.decrypt(cipher))
+            results['file'] = {'encrypted': 'encrypted.txt', 'decrypted': 'decrypted.txt'}
+        step1 = {
+            'msg': 'Below are the details of the keys and how they were generated',
+            'substeps': ['p: {}\n'.format(self.p), 'q: {}\n'.format(self.q), 'n: {}\n'.format(self.n), 'phi: {}\n'.format(self.phi), 
+                        'Public Key: {}\n'.format(self.public_key), 'Private Key: {}\n'.format(self.private_key)]
+        }
+        step2 = {
+            'msg': 'Below are the details of encryption with RSA',
+            'substeps': ['the message as integer:' + str(mint_list), 'the public key: ' + str(self.public_key), 'the ciphertext: {}'.format(cipher)]
+        }
+        step3 = {
+            'msg': 'Below are the details of encryption with RSA',
+            'substeps': ['the ciphertext: {}'.format(cipher), 'the private key: '+ str(self.private_key), 'the decrypted message: '+
+                         plaintext]
+        }
+        steps = [step1, step2, step3]
+        return results, steps

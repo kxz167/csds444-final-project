@@ -36,7 +36,7 @@ ALGO = {
     "sha256": sha256_visual,
     "sha512": sha512_visual,
     "aes": run_the_algo,
-    # "rsa": ,
+    "rsa": rsa_visual,
     "ecies": ecies_visual,
 }
 
