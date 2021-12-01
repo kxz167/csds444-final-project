@@ -17,3 +17,16 @@ h1,h2,h3,h4,h5,h6 {
 button, select {
     font-family: inherit;
 }
+
+@media screen and (min-width: 1000px){
+    body{
+        font-size: xx-large;
+    }
+    textarea{
+        font-size:larger;
+    }
+    
+    select, option{
+        font-size:large;
+    }
+}
