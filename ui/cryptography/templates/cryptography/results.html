@@ -44,12 +44,13 @@
             stepTitle.appendChild(document.createTextNode("Step " + step_index + ":")); //Step info
             newDiv.appendChild(stepTitle);
 
-            const stepContainer = document.createElement("div");
+            let stepContainer = document.createElement("div");
             stepContainer.setAttribute('id', 'step-val-container');
             stepContainer.onwheel = captureStep;
             
-            const newContent = document.createTextNode(JSON.stringify(steps[step_index]['msg'])); //Set chunk to the right name
-            stepContainer.appendChild(newContent);
+            // const newContent = document.createTextNode(JSON.stringify(steps[step_index]['msg'])); //Set chunk to the right name
+            stepContainer.innerHTML = (steps[step_index]['msg']).replaceAll("\n", "<br>");
+
             newDiv.appendChild(stepContainer);
             
             const substepRef = document.createElement("div");
@@ -185,11 +186,11 @@
         <div id="results">
             <h2>Results:</h2>
             <div id="text-result">
-                <p>{{results.string_text}}</p>
+                <p>{{results.string_text | linebreaksbr}}</p>
             </div>
-            {% if results.files %}
+            {% if results.file %}
                 <h2>File output:</h2>
-                {% for key, filepath in results.files.items %}
+                {% for key, filepath in results.file.items %}
                     <a href="{% url 'download_file' filepath %}">{{key}}</a>
                     <p></p>
                 {% endfor %}

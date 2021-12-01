@@ -35,7 +35,7 @@ FILE_ALGO = {
 ALGO = {
     "sha256": sha256_visual,
     "sha512": sha512_visual,
-    # "aes": ,
+    "aes": run_the_algo,
     # "rsa": ,
     "ecies": ecies_visual,
 }
@@ -131,7 +131,7 @@ def result(request: WSGIRequest):
     input_type = args['formType']
     if(input_type == "text"):
         input_text = args['plaintext']
-        results, parsed_steps = ALGO[algorithm](input_text, is_file=False, showstep=showstep)
+        results, parsed_steps = ALGO[algorithm](input_text, False, showstep)
     else:
         # This is a file
         # Upload the file to 'uploads/plain_file'
@@ -139,7 +139,7 @@ def result(request: WSGIRequest):
             for chunk in files['plain_file'].chunks():
                 destination.write(chunk)
         
-        results, parsed_steps = ALGO[algorithm]('uploads/plain_file', is_file=True, showstep=showstep) # Must load algorithms
+        results, parsed_steps = ALGO[algorithm]('uploads/plain_file', True, showstep) # Must load algorithms
 
     # print(algorithm)
     # print(showstep)
