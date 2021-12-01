@@ -34,17 +34,26 @@ textarea{
     height: 200px;
 }
 
+#file-upload::file-selector-button{
+    display: none;
+}
 #file-upload{
-    display: hidden;
+    font-family: inherit;
+    display: inline;
 }
 
 .enc-option{
     margin: 30px;
     padding: 15px;
     border-radius: 10px;
-    display: block;
     text-decoration: inherit;
     color: inherit;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    transition:.3s;
 }
 
 .enc-option:hover{

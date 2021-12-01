@@ -20,8 +20,13 @@
     border-radius: 5px;
 }
 
-#step-val-container, #substep-val{
+#step-val-container, #substep-val, #text-result{
     padding: 20px;
     border-radius: 5px;
     background-color: #eee;
+}
+
+#text-result > p{
+    overflow-wrap: anywhere;
+    margin:0;
 }

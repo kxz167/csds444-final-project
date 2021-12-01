@@ -17,7 +17,7 @@
         step_index = 0;
         step_sub_index = 0;
         steps = {{steps|safe}};
-        console.warn(steps);
+        // console.warn(steps);
 
         function printIndex(){
             console.warn(index);
@@ -41,7 +41,7 @@
             newDiv.setAttribute('id', 'step-val');
 
             const stepTitle = document.createElement("h3");
-            stepTitle.appendChild(document.createTextNode("Target info " + step_index + ":")); //Step info
+            stepTitle.appendChild(document.createTextNode("Step " + step_index + ":")); //Step info
             newDiv.appendChild(stepTitle);
 
             const stepContainer = document.createElement("div");
@@ -103,12 +103,12 @@
 
         //mouse enter / leave
         function blockStepScroll(){
-            console.warn("removed");
+            // console.warn("removed");
             document.getElementById('step-val').onwheel = null;
         }
 
         function enableStepScroll(){
-            console.warn("added");
+            // console.warn("added");
             let target = document.getElementById('step-val')
             document.getElementById('step-val').onwheel = captureStep;
         }
@@ -137,11 +137,6 @@
                 nextS();
             }
         }
-
-        function addButtons(){
-
-        }
-
 
         function nextS(){
             if(step_index < steps.length-1){
@@ -189,8 +184,11 @@
         <h1>Encryption: {{algorithm}}</h1>
         <div id="results">
             <h2>Results:</h2>
-            <p>Result: {{results.string_text}}</p>
+            <div id="text-result">
+                <p>{{results.string_text}}</p>
+            </div>
             {% if results.files %}
+                <h2>File output:</h2>
                 {% for key, filepath in results.files.items %}
                     <a href="{% url 'download_file' filepath %}">{{key}}</a>
                     <p></p>
@@ -198,6 +196,7 @@
             {% endif %}
         </div>
         {% if showstep %}
+        <hr>
         <div id="steps"> 
             <h2>Steps:</h2>
             <div id="step-reference"></div>

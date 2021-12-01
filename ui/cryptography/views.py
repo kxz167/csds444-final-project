@@ -46,10 +46,10 @@ def index(request):
     return render(request, 'cryptography/index.html', {})
 
 def tools(request):
-    True
+    return render(request, 'cryptography/tools.html', {})
 
 def tutorials(request):
-    True
+    return render(request, 'cryptography/tutorials.html', {})
 
 def text(request: WSGIRequest):
     return render(request, 'cryptography/text.html', {})
@@ -59,6 +59,7 @@ def file(request):
     return render(request, 'cryptography/file.html', {})
 
 def result(request: WSGIRequest):
+    print("Begin computing results")
     args = request.POST
     files = request.FILES
 

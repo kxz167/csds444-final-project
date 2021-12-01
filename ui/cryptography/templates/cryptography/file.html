@@ -15,17 +15,16 @@
                 {% csrf_token %}
                 <!-- {{form}} -->
                 <div>
-                    <label for="file-upload">
-                        <a class="enc-option">
-                            <div class="enc-icon">
-                                <span class="material-icons-round">
-                                    file_upload
-                                </span>
-                            </div>
-                            <span class="enc-option-text">Upload</span>
-                        </a>
+                    <label for="file-upload"class="enc-option">
+                        <div class="enc-icon">
+                            <span class="material-icons-round">
+                                file_upload
+                            </span>
+                        </div>
+                        <span class="enc-option-text">Upload:</span>
+                        <input class="enc-option-text" id="file-upload" type="file" name="plain_file"/>
                     </label>
-                    <input id="file-upload" type="file" name="plain_file" hidden/>
+                    
                 </div>
                 <div>
                     <button type="submit">Encrypt!</button>

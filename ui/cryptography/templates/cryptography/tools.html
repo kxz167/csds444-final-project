@@ -2,36 +2,32 @@
 <html>
     <head>
         {% load static %}
-        <link rel="stylesheet" href="{% static 'cryptography/style.css' %}"/>
         <link rel="stylesheet" href="{% static 'global-styles.css' %}"/>
+        <link rel="stylesheet" href="{% static 'cryptography/style.css' %}"/>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     </head>
     <body>
         {% include "navbar.html"%}
         <main>
-            <h1>File Encoding!</h1>
-            <form action="result/" method="post" enctype="multipart/form-data">
-                {% include "algo_form.html" %}
-                {% csrf_token %}
-                <!-- {{form}} -->
-                <div>
-                    <label for="file-upload">
-                        <a class="enc-option">
-                            <div class="enc-icon">
-                                <span class="material-icons-round">
-                                    file_upload
-                                </span>
-                            </div>
-                            <span class="enc-option-text">Upload</span>
-                        </a>
-                    </label>
-                    <input id="file-upload" type="file" name="plain_file" hidden/>
-                </div>
-                <div>
-                    <button type="submit">Encrypt!</button>
-                </div>
-                <input type="hidden" id="formType" name="formType" value="file"/>
-            </form>
+            <h1>Encryption Options:</h1>
+            <div id="enc-option-container">
+                <a href="{% url 'tools-text-encode' %}" class="enc-option">
+                    <div class="enc-icon">
+                        <span class="material-icons-round">
+                            notes
+                        </span>
+                    </div>
+                    <span class="enc-option-text">Text</span>
+                </a>
+                <a href="{% url 'tools-file-encode' %}" class="enc-option">
+                    <div class="enc-icon">
+                        <span class="material-icons-round">
+                            file_upload
+                        </span>
+                    </div>
+                    <span class="enc-option-text">File</span>
+                </a>
+            </div>
         </main>
     </body>
 </html>
