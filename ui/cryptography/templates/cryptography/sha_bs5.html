@@ -15,11 +15,8 @@
     <main>
         <h1>SHA 256 steps</h1>
         <p>Input: {{steps.msg}} </p>
-        <p style="overflow-wrap: break-word;">Padding: {{steps.padding}}</p>
+        <p>Padding: {{steps.padding}}</p>
         <p>Result Hash: {{steps.hash}}</p>
-        <a href="{% url 'download_file' converted_file %}">Download Results</a>
-        
-        <p></p>
         <div id="container">
             {% for step in steps.steps %}
             <div class="card">
@@ -63,11 +60,6 @@
             {% endfor %}
         </div>
     </main>
-    <!-- Here's how to read json variable in django 2.1+ -->
-    {{ steps|json_script:"id" }}
-    <script>
-        console.log({{ steps | safe }});
-    </script>
 </body>
 
 </html>

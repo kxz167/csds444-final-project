@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'cryptography/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'cryptography/result_style.css' %}" />
+    <link rel="stylesheet" href="{% static 'global-styles.css' %}" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?autoload=true&amp;skin=sunburst&amp;lang=css" defer></script>
+</head>
+
+<body>
+    {% include "navbar.html" %}
+    <main>
+        <h1>{{method_display}}: {{algorithm}}</h1>
+        <div id="results">
+            <h2>Results:</h2>
+            <!-- THEN YOU CAN PUT ALL THE RESULTS HERE -->
+            <div id="text-result">
+                <p>{{results.string_text | safe}}</p>
+            </div>
+            {% if results.file %}
+                <h2>File output:</h2>
+                {% for key, filepath in results.file.items %}
+                    <a href="{% url 'download_file' filepath %}">{{key}}</a>
+                    <p></p>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </main>
+</body>
+
+</html>

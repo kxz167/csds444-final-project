@@ -5,51 +5,35 @@
         <link rel="stylesheet" href="{% static 'cryptography/style.css' %}"/>
         <link rel="stylesheet" href="{% static 'global-styles.css' %}"/>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+        <script>
+            function updateName(element){
+                document.getElementById("file-name").innerText = element.files[0].name;
+            }
+        </script>
     </head>
     <body>
         {% include "navbar.html"%}
         <main>
-            <h1>File Encoding!</h1>
-            <form method="post">
+            <h1>File Cryptography!</h1>
+            <form action="result/" method="post" enctype="multipart/form-data">
+                {% include "algo_form.html" %}
+                {% csrf_token %}
+                <!-- {{form}} -->
                 <div>
-                    <label for="algo">Select the desired encryption method:&nbsp;</label>
-                    <select id="algo" name="algo">
-                        <option value="sha256">SHA256</option>
-                        <option value="sha512">SHA512</option>
-                        <option value="aes">AES</option>
-                        <option value="ERC">ERC</option>
-                    </select>
-                </div>
-                <div class="flex-distribute">
-                    <div class="form-check">
-                        <label for="id_show_step">Show step:</label>
-                        <input type="checkbox" name="show_step" id="id_show_step">    
-                    </div>
-                    <div class="form-check">
-                        <label for="id_show_step_description">Show step description:</label>
-                        <input type="checkbox" name="show_step_description" id="id_show_step_description"/>    
-                    </div>
-                    <div class="form-check">
-                        <label for="id_pause_on_step">Pause on step:</label>
-                        <input type="checkbox" name="pause_on_step" id="id_pause_on_step"/>
-                    </div>
-                </div>
-                <div>
-                    <label for="file-upload">
-                        <a class="enc-option">
-                            <div class="enc-icon">
-                                <span class="material-icons-round">
-                                    file_upload
-                                </span>
-                            </div>
-                            <span class="enc-option-text">Upload</span>
-                        </a>
+                    <label for="file-upload"class="enc-option">
+                        <div class="enc-icon">
+                            <span class="material-icons-round">
+                                file_upload
+                            </span>
+                        </div>
+                        <span id="file-name" class="enc-option-text">Upload:</span>
                     </label>
-                    <input id="file-upload" type="file" hidden/>
+                    <input id="file-upload" type="file" name="plain_file" onchange="updateName(this)" hidden/>
                 </div>
                 <div>
                     <button type="submit">Encrypt!</button>
                 </div>
+                <input type="hidden" id="formType" name="formType" value="file"/>
             </form>
         </main>
     </body>

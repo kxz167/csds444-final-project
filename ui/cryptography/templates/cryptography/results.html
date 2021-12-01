@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'cryptography/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'cryptography/result_style.css' %}" />
+    <link rel="stylesheet" href="{% static 'global-styles.css' %}" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?autoload=true&amp;skin=sunburst&amp;lang=css" defer></script>
+    <script>
+        testval = "sdfjidsf";
+        index = 0;
+
+        step_index = 0;
+        step_sub_index = 0;
+        steps = {{steps|safe}};
+        // console.warn(steps);
+
+        function printIndex(){
+            console.warn(index);
+            console.warn({{ steps | safe }});
+            console.warn({{steps | safe}}.steps[0]);
+        }
+
+        // document.body.onload = loadStep;
+
+        function clearStep(){
+            document.getElementById('step-val').remove();
+        }
+
+        function clearSubStep(){
+            document.getElementById('step-sub-val-container').remove();
+            // document.getElementById('substep-title').remove();
+        }
+
+        function loadStep(){
+            newDiv = document.createElement("div");
+            newDiv.setAttribute('id', 'step-val');
+
+            const stepTitle = document.createElement("h3");
+            stepTitle.appendChild(document.createTextNode("Step " + step_index + ":")); //Step info
+            newDiv.appendChild(stepTitle);
+
+            let stepContainer = document.createElement("div");
+            stepContainer.setAttribute('id', 'step-val-container');
+            stepContainer.onwheel = captureStep;
+            
+            // const newContent = document.createTextNode(JSON.stringify(steps[step_index]['msg'])); //Set chunk to the right name
+            stepContainer.innerHTML = (steps[step_index]['msg']).replaceAll("\n", "<br>");
+
+            newDiv.appendChild(stepContainer);
+            
+            const substepRef = document.createElement("div");
+            substepRef.setAttribute('id', "substep-ref");
+            newDiv.appendChild(substepRef);
+
+            
+
+            // add the newly created element and its content into the DOM
+            const currentDiv = document.getElementById("step-reference");
+            document.getElementById("steps").insertBefore(newDiv, currentDiv);
+
+            loadSubStep();
+        }
+
+        
+        function loadSubStep(){
+            const stepSubContainer = document.createElement("div");
+            stepSubContainer.setAttribute('id', 'step-sub-val-container');
+            stepSubContainer.onwheel = captureSubStep;
+            //COPY
+
+            //Update the header:
+            const subStepTitle = document.createElement("h3");
+            subStepTitle.appendChild(document.createTextNode("Substep " + step_sub_index + ":")); //Substep title
+            subStepTitle.setAttribute('id', 'substep-title');
+            stepSubContainer.appendChild(subStepTitle);
+            // document.getElementById("step-val").insertBefore(subStepTitle, document.getElementById('substep-ref'));
+
+            // Create the new step
+            newDiv = document.createElement("div");
+            newDiv.setAttribute('id', 'substep-val');
+            
+            //Allow scrolling through steps
+            // newDiv.onwheel= captureSubStep;
+
+            //Prevent the scrolling when on substeps
+            newDiv.onmouseenter = blockStepScroll;
+            newDiv.onmouseleave = enableStepScroll;
+            const newContent = document.createTextNode("<code>" + steps[step_index]['substeps'][step_sub_index] + "</code>"); //Set rounds to the right name
+            // let newContent = document.createElement('p')
+            // // newContent.className = 'prettyprint'
+            // newContent.innerText = steps[step_index]['substeps'][step_sub_index]; //Set rounds to the right name
+            // // console.log(newContent.innerHTML)
+            newDiv.innerHTML = (steps[step_index]['substeps'][step_sub_index]).replaceAll("\n", "<br>");
+            stepSubContainer.appendChild(newDiv);
+
+            const currentDiv = document.getElementById("substep-ref");
+            document.getElementById("step-val").insertBefore(stepSubContainer, currentDiv);
+        }
+
+        //mouse enter / leave
+        function blockStepScroll(){
+            // console.warn("removed");
+            document.getElementById('step-val').onwheel = null;
+        }
+
+        function enableStepScroll(){
+            // console.warn("added");
+            let target = document.getElementById('step-val')
+            document.getElementById('step-val').onwheel = captureStep;
+        }
+
+        function captureSubStep($event){
+            $event.preventDefault();
+
+            if ($event.deltaY < 0) {
+                //Scroll up
+                prevSS();
+            }
+            else{
+                //scroll down
+                nextSS();
+            }
+        }
+
+        function captureStep($event){
+            $event.preventDefault();
+            if ($event.deltaY < 0) {
+                //Scroll up
+                prevS();
+            }
+            else{
+                //scroll down
+                nextS();
+            }
+        }
+
+        function nextS(){
+            if(step_index < steps.length-1){
+                clearStep();
+                step_index = Math.min(steps.length-1, step_index + 1);
+                step_sub_index=0;
+                loadStep();
+            }
+        }
+
+        function nextSS(){
+            if(step_sub_index < steps[step_index]['substeps'].length - 1){
+                
+                clearSubStep()
+                // WHEN UPDATED TO DICT STRUCTURE
+                // step_sub_index = Math.min(steps[step_index]['substeps'].length-1, step_sub_index + 1);
+                step_sub_index = Math.min(steps[step_index]['substeps'].length-1, step_sub_index + 1);
+                loadSubStep();
+            }
+        }
+
+        function prevSS(){
+            if(step_sub_index > 0){
+                clearSubStep();
+                step_sub_index = Math.max(0, step_sub_index - 1);
+                loadSubStep();
+            }
+        }
+
+        function prevS(){
+            if(step_index > 0){
+                clearStep();
+                step_index = Math.max(0, step_index - 1);
+                step_sub_index=0;
+                loadStep();
+            }
+        }
+
+    </script>
+</head>
+
+<body onload="loadStep()">
+    {% include "navbar.html" %}
+    <main>
+        <h1>Encryption: {{algorithm}}</h1>
+        <div id="results">
+            <h2>Results:</h2>
+            <div id="text-result">
+                <p>{{results.string_text | linebreaksbr}}</p>
+            </div>
+            {% if results.file %}
+                <h2>File output:</h2>
+                {% for key, filepath in results.file.items %}
+                    <a href="{% url 'download_file' filepath %}">{{key}}</a>
+                    <p></p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        {% if showstep %}
+        <hr>
+        <div id="steps"> 
+            <h2>Steps:</h2>
+            <div id="step-reference"></div>
+            <div id="buttons">
+                <div class="step-button" onclick="prevS()">&langle;&langle;</div>
+                <div class="step-button" onclick="prevSS()">&langle;</div>
+                <div class="step-button" onclick="nextSS()">&rangle;</div>
+                <div class="step-button" onclick="nextS()">&rangle;&rangle;</div>
+            </div>
+        </div>
+        {% endif %} 
+    </main>
+</body>
+
+</html>

@@ -2,30 +2,30 @@
 <html>
     <head>
         {% load static %}
-        <link rel="shortcut icon" href="#">
         <link rel="stylesheet" href="{% static 'global-styles.css' %}"/>
         <link rel="stylesheet" href="{% static 'cryptography/style.css' %}"/>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     </head>
     <body>
+        {% include "navbar.html"%}
         <main>
-            <h1>Cryptography Options:</h1>
+            <h1>Encryption Options:</h1>
             <div id="enc-option-container">
-                <a href="{% url 'tutorials' %}" class="enc-option">
+                <a href="{% url 'tools-encode' %}" class="enc-option">
                     <div class="enc-icon">
                         <span class="material-icons-round">
-                            info
+                            lock
                         </span>
                     </div>
-                    <span class="enc-option-text">Tutorials</span>
+                    <span class="enc-option-text">Encode</span>
                 </a>
-                <a href="{% url 'tools' %}" class="enc-option">
+                <a href="{% url 'tools-decode' %}" class="enc-option">
                     <div class="enc-icon">
                         <span class="material-icons-round">
-                            build
+                            lock_open
                         </span>
                     </div>
-                    <span class="enc-option-text">Tools</span>
+                    <span class="enc-option-text">Decode</span>
                 </a>
             </div>
         </main>

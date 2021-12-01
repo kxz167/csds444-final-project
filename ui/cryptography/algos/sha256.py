@@ -1,4 +1,7 @@
 import copy
+from pprint import pformat
+import json
+from bitstring import BitArray
 
 F32 = 0xFFFFFFFF
 
@@ -88,9 +91,13 @@ class SHA256:
         Main Compression algorithm
         """
         assert len(chunk) == 64, "All chunks to be compressed must be 64 bytes (512 bits)"
-        visual_dict = {
-            'chunk': chunk.decode('utf-8', errors='ignore')
-        }
+        if self.visual:
+            visual_dict = {
+                'msg':  BitArray(chunk).hex,
+                'substeps': []
+            }
+
+
         # 32 bit words
         w = [0] * 64
 
@@ -106,6 +113,7 @@ class SHA256:
             visual_dict['rounds'] = []
 
         for i in range(64):
+            substep_dict = {}
             temp1 = (h + Sigma_1(e) + ch(e, f, g) + self._K[i] + w[i]) & F32
             temp2 = (Sigma_0(a) + maj(a, b, c)) & F32
     
@@ -120,7 +128,8 @@ class SHA256:
 
             a = (temp1 + temp2) & F32
             if self.visual:
-                visual_dict['rounds'].append({
+                substep_dict = {
+                    'round': i,
                     'a': a,
                     'b': b,
                     'c': c,
@@ -131,7 +140,8 @@ class SHA256:
                     'h': h,
                     'temp1': temp1,
                     'temp2': temp2
-                })
+                }
+                visual_dict['substeps'].append(json.dumps(substep_dict, indent=4))
         for i, (h, x) in enumerate(zip(self._H, [a, b, c, d, e, f, g, h])):
             self._H[i] = (h + x) & F32
         if self.visual:
@@ -165,8 +175,6 @@ class SHA256:
     
     @property
     def steps(self):
-        if not self.visual:
-            raise NotImplementedError("SHA-256 is not in visual mode")
         sha_copy = copy.deepcopy(self)
 
         # Append additional padded bits
