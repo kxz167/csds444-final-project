@@ -47,6 +47,18 @@ def index(request):
 
 def tools(request):
     return render(request, 'cryptography/tools.html', {})
+ 
+def encode(request):
+    return render(request, 'cryptography/encrypt.html', {'method': 'encode', 'method_display': 'Encoding'})
+
+def decode(request):
+    return render(request, 'cryptography/encrypt.html', {'method': 'decode', 'method_display': 'Decoding'})
+
+def textEncode(request):
+    return render(request, 'cryptography/encrypt.html', {'method': 'encode', 'method_display': 'Encoding'})
+
+def textDecode(request):
+    return render(request, 'cryptography/encrypt.html', {'method': 'decode', 'method_display': 'Decoding'})
 
 def tutorials(request):
     return render(request, 'cryptography/tutorials.html', {})

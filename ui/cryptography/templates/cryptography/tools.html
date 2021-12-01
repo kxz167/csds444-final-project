@@ -11,21 +11,21 @@
         <main>
             <h1>Encryption Options:</h1>
             <div id="enc-option-container">
-                <a href="{% url 'tools-text-encode' %}" class="enc-option">
+                <a href="{% url 'tools-encode' %}" class="enc-option">
                     <div class="enc-icon">
                         <span class="material-icons-round">
-                            notes
+                            lock
                         </span>
                     </div>
-                    <span class="enc-option-text">Text</span>
+                    <span class="enc-option-text">Encode</span>
                 </a>
-                <a href="{% url 'tools-file-encode' %}" class="enc-option">
+                <a href="{% url 'tools-decode' %}" class="enc-option">
                     <div class="enc-icon">
                         <span class="material-icons-round">
-                            file_upload
+                            lock_open
                         </span>
                     </div>
-                    <span class="enc-option-text">File</span>
+                    <span class="enc-option-text">Decode</span>
                 </a>
             </div>
         </main>

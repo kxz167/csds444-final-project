@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'cryptography/style.css' %}"/>
+        <link rel="stylesheet" href="{% static 'global-styles.css' %}"/>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+        <script>
+            function updateName(element){
+                document.getElementById("file-name").innerText = element.files[0].name;
+            }
+
+
+            prevKeyIsFile = false;
+            prevInputIsFile = false;
+            function checkForm(form){ //Don't need form it appears
+                // console.warn(form);
+                //Switch states:
+                keyIsFile = document.getElementById("id_key_file").checked;
+                inputIsFile = document.getElementById("id_input_file").checked;
+                
+                if(keyIsFile && keyIsFile != prevKeyIsFile){
+                    //Set display
+                    document.getElementById("keytext").style.display = 'none';
+                    document.getElementById("keyfile").style.display = 'inherit';
+                }
+                else if (!keyIsFile && keyIsFile != prevKeyIsFile){
+                    document.getElementById("keytext").style.display = 'inherit';
+                    document.getElementById("keyfile").style.display = 'none';
+                }
+
+                if(inputIsFile && inputIsFile != prevInputIsFile){
+                    //Set Display
+                    document.getElementById("inputtext").style.display = 'none';
+                    document.getElementById("inputfile").style.display = 'inherit';
+                }
+                else if (!inputIsFile && inputIsFile != prevInputIsFile){
+                    document.getElementById("inputtext").style.display = 'inherit';
+                    document.getElementById("inputfile").style.display = 'none';
+                }
+
+                prevKeyIsFile = keyIsFile;
+                prevInputIsFile = inputIsFile;
+            }
+        </script>
+    </head>
+    <body>
+        {% include "navbar.html"%}
+        <main>
+            <h1>{{method_display}}!</h1>
+            <form action="result/" method="post" enctype="multipart/form-data" onchange="checkForm(this)">
+                {% csrf_token %}
+                <div class="form-flex">
+                    <label for="algo">Select the desired encryption method:&nbsp;</label>
+                    <select id="algo" name="algo">
+                        <!-- <option value="sha256">SHA256</option>
+                        <option value="sha512">SHA512</option> -->
+                        <option value="aes">AES</option>
+                        <!-- <option value="rsa">RSA</option>
+                        <option value="ecies">ECIES</option> -->
+                    </select>
+                </div>
+                <hr>
+                <h2>Key Input:</h2>
+                <div class="flex-distribute">
+                    <div class="form-check">
+                        <span class="switch-text">Text</span>
+                        <label class="switch">
+                            <input type="checkbox" name="key_is_file" id="id_key_file">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="switch-text">File</span>
+                    </div>
+                </div>
+                <textarea name="keytext" id="keytext"></textarea>
+                <div id="keyfile" style="display: none;">
+                    <label for="file-upload"class="enc-option">
+                        <div class="enc-icon">
+                            <span class="material-icons-round">
+                                file_upload
+                            </span>
+                        </div>
+                        <span id="file-name" class="enc-option-text">Upload:</span>
+                    </label>
+                    <input class="enc-option-text" id="file-upload" type="file" name="plain_file" onchange="updateName(this)" hidden/>
+                </div>
+                <hr>
+                <h2>{{method_display}} File Input:</h2>
+                <div class="flex-distribute">
+                    <div class="form-check">
+                        <span class="switch-text">Text</span>
+                        <label class="switch">
+                            <input type="checkbox" name="input_is_file" id="id_input_file">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="switch-text">File</span>
+                    </div>
+                </div>
+                <textarea name="plaintext" id="inputtext"></textarea>
+                <div id="inputfile" style="display: none;">
+                    <label for="file-upload"class="enc-option">
+                        <div class="enc-icon">
+                            <span class="material-icons-round">
+                                file_upload
+                            </span>
+                        </div>
+                        <span id="file-name" class="enc-option-text">Upload:</span>
+                    </label>
+                    <input class="enc-option-text" id="file-upload" type="file" name="plain_file" onchange="updateName(this)" hidden/>
+                </div>
+                <div>
+                    <button type="submit">Encrypt!</button>
+                </div>
+                <input type="hidden" id="formType" name="formType" value="file"/>
+                <input type="hidden" name="method" value="{{method}}"/>
+                <input type="hidden" name="method_display" value="{{method_display}}"/>
+            </form>
+        </main>
+    </body>
+</html>

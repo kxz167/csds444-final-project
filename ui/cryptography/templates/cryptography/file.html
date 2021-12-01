@@ -5,6 +5,11 @@
         <link rel="stylesheet" href="{% static 'cryptography/style.css' %}"/>
         <link rel="stylesheet" href="{% static 'global-styles.css' %}"/>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+        <script>
+            function updateName(element){
+                document.getElementById("file-name").innerText = element.files[0].name;
+            }
+        </script>
     </head>
     <body>
         {% include "navbar.html"%}
@@ -21,10 +26,9 @@
                                 file_upload
                             </span>
                         </div>
-                        <span class="enc-option-text">Upload:</span>
-                        <input class="enc-option-text" id="file-upload" type="file" name="plain_file"/>
+                        <span id="file-name" class="enc-option-text">Upload:</span>
                     </label>
-                    
+                    <input class="enc-option-text" id="file-upload" type="file" name="plain_file" onchange="updateName(this)" hidden/>
                 </div>
                 <div>
                     <button type="submit">Encrypt!</button>
