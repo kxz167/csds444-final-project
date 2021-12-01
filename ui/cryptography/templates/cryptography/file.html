@@ -14,7 +14,7 @@
     <body>
         {% include "navbar.html"%}
         <main>
-            <h1>File Encoding!</h1>
+            <h1>File Cryptography!</h1>
             <form action="result/" method="post" enctype="multipart/form-data">
                 {% include "algo_form.html" %}
                 {% csrf_token %}
@@ -28,7 +28,7 @@
                         </div>
                         <span id="file-name" class="enc-option-text">Upload:</span>
                     </label>
-                    <input class="enc-option-text" id="file-upload" type="file" name="plain_file" onchange="updateName(this)" hidden/>
+                    <input id="file-upload" type="file" name="plain_file" onchange="updateName(this)" hidden/>
                 </div>
                 <div>
                     <button type="submit">Encrypt!</button>

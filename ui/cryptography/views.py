@@ -40,6 +40,10 @@ ALGO = {
     "ecies": ecies_visual,
 }
 
+ENC_ALGO = {
+    # "aes": aes_enc,
+}
+
 
 # Create your views here.
 def index(request):
@@ -59,6 +63,50 @@ def textEncode(request):
 
 def textDecode(request):
     return render(request, 'cryptography/encrypt.html', {'method': 'decode', 'method_display': 'Decoding'})
+
+def enc_result(request: WSGIRequest):
+    print("Begin computing results")
+    args = request.POST
+    files = request.FILES
+    
+    print(args)
+    print(files)
+
+    algorithm = args['algo']
+    method = args['method'] #whether we are encoding or decoding
+    method_display = args['method_display'] #Displayable encryption type: Encoding or Decoding.
+    key_is_file = 'key_is_file' in args
+    input_is_file = 'input_is_file' in args
+
+    # Write the key file (BYTES): Can change to toher formats
+    with open('uploads/enc_key_file', 'wb+') as destination: #Modify wb
+        print(key_is_file)
+        if(key_is_file):
+            for chunk in files['key_file'].chunks():
+                destination.write(chunk)
+        else:
+            destination.write(args['keytext'].encode('utf-8')) #Remove encode
+
+    # Write the plain file (BYTES): Can change to toher formats
+    with open('uploads/enc_plain_file', 'wb+') as destination: #Modify wb
+        print(input_is_file)
+        if(input_is_file):
+            for chunk in files['plain_file'].chunks():
+                destination.write(chunk)
+        else:
+            destination.write(args['plaintext'].encode('utf-8')) #Remove encode
+    
+    # results = ENC_ALGO[algorithm](input_text, input_file) # In file paths ONLY
+
+    #If necessary, can read the results files or hoever results are returned
+
+    return render(request, 'cryptography/encrypt-results.html', {
+            'algorithm': algorithm,
+            'method': method,
+            'method_display': method_display,
+            # 'results': results
+        }
+    )
 
 def tutorials(request):
     return render(request, 'cryptography/tutorials.html', {})

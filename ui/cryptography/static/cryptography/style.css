@@ -34,10 +34,6 @@ textarea{
     height: 200px;
 }
 
-#file-upload{
-    display: none;
-}
-
 .enc-option{
     margin: 30px;
     padding: 15px;
