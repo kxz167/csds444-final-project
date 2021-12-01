@@ -324,9 +324,9 @@ def to_string(data):
         }
     step1 = {
         'msg': 'Below are the details of the elliptic curve (y^3 = x^2 + ax + b (mod p)) used for encryption.',
-        'substeps': ['prime: ' + str(data['prime']) + ', a: ' + str(data['a'] )+ ', b: ' + str(data['b']) +
-                     ', generator point: ' + str(data['generator']) + ', order of subgroup: ' +
-                     str(data['subgroup_order']) + ', cofactor of subgroup: ' + str(data['subgroup_cofactor'])]
+        'substeps': ['prime: ' + str(data['prime']), 'a: ' + str(data['a']), 'b: ' + str(data['b']),
+                     'generator point: ' + str(data['generator']), 'order of subgroup: ' +
+                     str(data['subgroup_order']), 'cofactor of subgroup: ' + str(data['subgroup_cofactor'])]
     }
 
     step2 = {
@@ -336,7 +336,7 @@ def to_string(data):
                'itself kb times. Note that the rational points on an elliptic curve form a group under addition:' +
                ' adding two points with rational coefficients on the curve produces a third on the curve. Alice reads' +
                ' KB from a public ledger.',
-        'substeps': ['kb: ' + str(data['public_key']) + ', KB: ' + str(data['private_key'])]
+        'substeps': ['kb: ' + str(data['public_key']), 'KB: ' + str(data['private_key'])]
     }
 
     step3 = {
@@ -345,17 +345,17 @@ def to_string(data):
                'coordinate of this point is the shared secret, S. This shared secret is the input to the key ' +
                'derivation function (KDF), which computes both the symmetric encryption key and the message' +
                ' authentication code (MAC) key.',
-        'substeps': ['r: ' + str(data['random_number']) + ', R: ' + str(data['random_number_EC_point']) + ', P: ' +
-                     str(data['shared_secret_point']) + ', S: ' + str(data['shared_secret']) + ', symmetric encryption' +
-                     ' key: ' + str(data['sym_enc_key']) + ', MAC key: ' + str(data['mac_key'])]
+        'substeps': ['r: ' + str(data['random_number']), 'R: ' + str(data['random_number_EC_point']), 'P: ' +
+                     str(data['shared_secret_point']), 'S: ' + str(data['shared_secret']), 'symmetric encryption' +
+                     ' key: ' + str(data['sym_enc_key']), 'MAC key: ' + str(data['mac_key'])]
     }
 
     step4 = {
         'msg': 'The symmetric encryption key is used to encrypt the plaintext using AES, while the MAC key is used by' +
                ' the HMAC algorithm to compute the MAC tag, which verifies the authenticity of the message. Alice' +
                ' broadcasts her point R, the ciphertext (c), and the MAC to Bob: R||c||MAC',
-        'substeps': [('ciphertext: ' + str(data['ciphertext']) + ', ' if not data['is_filepath'] else '') + 'MAC: ' +
-                     str(data['mac_tag'])]
+        'substeps': ['ciphertext: ' + (str(data['ciphertext']) if not data['is_filepath'] else 'see file output'),
+                     'MAC: ' + str(data['mac_tag'])]
     }
 
     step5 = {
@@ -364,7 +364,7 @@ def to_string(data):
                ' r * kb * G = r * KB. Using S, Bob can derive the symmetric encryption keys and MAC keys the same way' +
                ' Alice did. Bob computes the MAC using the MAC key, and checks to make sure they match. If they do, ' +
                'Bob uses AES to decrypt the ciphertext with the symmetric encryption key he derived.',
-        'substeps': [('plaintext: ' + str(data['plaintext']) if not data['is_filepath'] else '')]
+        'substeps': ['plaintext: ' + (str(data['plaintext']) if not data['is_filepath'] else 'see file output')]
     }
 
     steps = [step1, step2, step3, step4, step5]
