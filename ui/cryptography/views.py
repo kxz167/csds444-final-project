@@ -7,7 +7,7 @@ from django.template import loader
 from django.shortcuts import render
 from django import forms
 
-from .visuals.visuals import sha256_visual, sha512_visual
+from .visuals.visuals import *
 import os
 import mimetypes
 from django.conf import settings
@@ -37,7 +37,7 @@ ALGO = {
     "sha512": sha512_visual,
     # "aes": ,
     # "rsa": ,
-    # "ecies": ,
+    "ecies": ecies_visual,
 }
 
 
@@ -69,6 +69,7 @@ def result(request: WSGIRequest):
     if(input_type == "text"):
         input_text = args['plaintext']
         results, parsed_steps = ALGO[algorithm](input_text, is_file=False, showstep=showstep)
+        print(results)
     else:
         # This is a file
         # Upload the file to 'uploads/plain_file'

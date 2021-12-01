@@ -89,12 +89,12 @@
             //Prevent the scrolling when on substeps
             newDiv.onmouseenter = blockStepScroll;
             newDiv.onmouseleave = enableStepScroll;
-            // const newContent = document.createTextNode(JSON.stringify(steps[step_index]['rounds'][step_sub_index])); //Set rounds to the right name
-            let newContent = document.createElement('code')
-            // newContent.className = 'prettyprint'
-            newContent.innerText = steps[step_index]['substeps'][step_sub_index]; //Set rounds to the right name
-            console.log(newContent.innerHTML)
-            newDiv.appendChild(newContent);
+            const newContent = document.createTextNode("<code>" + steps[step_index]['substeps'][step_sub_index] + "</code>"); //Set rounds to the right name
+            // let newContent = document.createElement('p')
+            // // newContent.className = 'prettyprint'
+            // newContent.innerText = steps[step_index]['substeps'][step_sub_index]; //Set rounds to the right name
+            // // console.log(newContent.innerHTML)
+            newDiv.innerHTML = (steps[step_index]['substeps'][step_sub_index]).replaceAll("\n", "<br>");
             stepSubContainer.appendChild(newDiv);
 
             const currentDiv = document.getElementById("substep-ref");
@@ -189,7 +189,7 @@
         <h1>Encryption: {{algorithm}}</h1>
         <div id="results">
             <h2>Results:</h2>
-            <p>Result: {{results.text}}</p>
+            <p>Result: {{results.string_text}}</p>
             {% if results.files %}
                 {% for key, filepath in results.files.items %}
                     <a href="{% url 'download_file' filepath %}">{{key}}</a>
