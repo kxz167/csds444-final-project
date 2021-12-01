@@ -1,5 +1,6 @@
 import copy
 import json
+from bitstring import BitArray
 
 byte_block = 128 # 1024 bits
 bit_length = 2**64
@@ -85,10 +86,11 @@ class SHA512:
         Main Compression algorithm
         """
         assert len(chunk) == byte_block, "All chunks to be compressed must be 128 bytes (1024 bits)"
-        visual_dict = {
-            'msg': str(chunk),
-            'substeps': []
-        }
+        if self.visual:
+            visual_dict = {
+                'msg':  BitArray(chunk).hex,
+                'substeps': []
+            }
         w = [0] * 80
 
         w[:16] = [int.from_bytes(chunk[i * 8 : i * 8 + 8], 'big') for i in range(16)]
@@ -157,7 +159,6 @@ class SHA512:
 
         # Append additional padded bits
         sha_copy.update(pad(self._msg_len))
-        print(sha_copy._msg_len)
         hash_buffer = b''
         for h in sha_copy._H:
             hash_buffer += h.to_bytes(8, 'big')

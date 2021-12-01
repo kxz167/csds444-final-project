@@ -64,7 +64,6 @@ def result(request: WSGIRequest):
     if(input_type == "text"):
         input_text = args['plaintext']
         results, parsed_steps = ALGO[algorithm](input_text, is_file=False, showstep=showstep)
-        print(results)
     else:
         # This is a file
         # Upload the file to 'uploads/plain_file'

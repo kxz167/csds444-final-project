@@ -1,6 +1,7 @@
 import copy
 from pprint import pformat
 import json
+from bitstring import BitArray
 
 F32 = 0xFFFFFFFF
 
@@ -90,10 +91,11 @@ class SHA256:
         Main Compression algorithm
         """
         assert len(chunk) == 64, "All chunks to be compressed must be 64 bytes (512 bits)"
-        visual_dict = {
-            'msg': str(chunk),
-            'substeps': []
-        }
+        if self.visual:
+            visual_dict = {
+                'msg':  BitArray(chunk).hex,
+                'substeps': []
+            }
 
 
         # 32 bit words
