@@ -391,7 +391,7 @@ def encrypt_matrix(matrix, round_keys):
 
 
 def encrypt_matrix_with_steps(matrix, round_keys):
-    message1 = "AES is a single key algorithm that generates many round keys to use in various 'rounds' of the algorithm" \
+    message1 = "AES is a single key block cipher that generates many round keys to use in various 'rounds' of the algorithm" \
                "\nWe'll be showing what one round of the algorithm looks like on the first 16 bytes of the message" \
                "\nThe first 16 bytes of text encoded into utf-8 are put into the matrix shown below\n" + matrix_to_string(matrix)
     message2 = ""
@@ -648,18 +648,19 @@ def run_the_algo(string_txt, is_filepath, show_steps):
 
     #parse inputs
     if not is_filepath:
-        output_file = open("output_file.txt", "w")
+        output_file = open("encrypted_output_file.txt", "w")
         string = string_txt
 
         #encrypt
         data = string.encode("utf-8")
-        encoded_boi, tuple_boi = encode_byte_list(data, key)
+        encoded_boi, tuple_boi = encode_byte_list(data, key, True)
         output_string = ""
         for byte in encoded_boi:
             output_string += str(byte) + " "
         output_file.write(output_string)
 
-        string_byte_array = string.split(" ")
+
+        string_byte_array = output_string.split(" ")
         byte_array = []
         for string_byte in string_byte_array:
             if string_byte != "":
@@ -678,14 +679,13 @@ def run_the_algo(string_txt, is_filepath, show_steps):
         for i in range(len(input_data)):
             byte_list.append(input_data[i])
 
-        encoded_boi, tuple_boi = encode_byte_list(byte_list, key)
+        encoded_boi, tuple_boi = encode_byte_list(byte_list, key, True)
         output_string = ""
         for byte in encoded_boi:
             output_string += str(byte) + " "
         output_file.write(output_string)
 
         output_name = "decrypted" + file_string
-
         input_file = open(output_file, 'r')
         string = input_file.read()
 
@@ -700,8 +700,9 @@ def run_the_algo(string_txt, is_filepath, show_steps):
         newFileByteArray = bytearray(encoded_boi)
         output_file.write(newFileByteArray)
 
+    print(tuple_boi)
     return tuple_boi
 
 
 if __name__ == "__main__":
-    main()
+    run_the_algo("test", False, True)
