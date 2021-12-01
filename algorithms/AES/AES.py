@@ -177,7 +177,7 @@ def rotate(word):
 
 
 # exponentiates two to some value (given)
-def rcon(value):
+def two_power(value):
     c = 0x01
     if value == 0:
         return 0
@@ -342,7 +342,7 @@ def generate_keys(original_key_words, N, R):
         if (0 <= i < N):
             W[i] = original_key_words[i]
         elif i >= N and i % N == 0:
-            W[i] = W[i - N] ^ sub_word(rotate(W[i - 1])) ^ rcon(i / N)
+            W[i] = W[i - N] ^ sub_word(rotate(W[i - 1])) ^ two_power(i / N)
         elif i >= N == 8 and i % N == 4:
             W[i] = W[i - N] ^ sub_word(W[i - 1])
         else:
