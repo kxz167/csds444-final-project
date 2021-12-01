@@ -190,8 +190,8 @@
         <div id="results">
             <h2>Results:</h2>
             <p>Result: {{results.string_text}}</p>
-            {% if results.files %}
-                {% for key, filepath in results.files.items %}
+            {% if results.file %}
+                {% for key, filepath in results.file.items %}
                     <a href="{% url 'download_file' filepath %}">{{key}}</a>
                     <p></p>
                 {% endfor %}
