@@ -706,4 +706,4 @@ def run_the_algo(string_txt, is_filepath, show_steps):
 
 
 if __name__ == "__main__":
-    run_the_algo("yup.mp3", True, True)
+    main()
