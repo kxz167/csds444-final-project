@@ -19,16 +19,16 @@
         <div id="results">
             <h2>Results:</h2>
             <!-- THEN YOU CAN PUT ALL THE RESULTS HERE -->
-            <!-- <div id="text-result">
-                <p>{{results.string_text}}</p>
+            <div id="text-result">
+                <p>{{results.string_text | safe}}</p>
             </div>
-            {% if results.files %}
-            <h2>File output:</h2>
-            {% for key, filepath in results.files.items %}
-            <a href="{% url 'download_file' filepath %}">{{key}}</a>
-            <p></p>
-            {% endfor %}
-            {% endif %} -->
+            {% if results.file %}
+                <h2>File output:</h2>
+                {% for key, filepath in results.file.items %}
+                    <a href="{% url 'download_file' filepath %}">{{key}}</a>
+                    <p></p>
+                {% endfor %}
+            {% endif %}
         </div>
     </main>
 </body>

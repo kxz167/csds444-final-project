@@ -1,6 +1,6 @@
 import random
-import util
-from Input import Input
+from . import util
+from .Input import Input
 
 
 class RSA:

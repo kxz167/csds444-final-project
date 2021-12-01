@@ -41,7 +41,7 @@ ALGO = {
 }
 
 ENC_ALGO = {
-    # "aes": aes_enc,
+    "aes": aes_method,
 }
 
 
@@ -80,23 +80,25 @@ def enc_result(request: WSGIRequest):
 
     # Write the key file (BYTES): Can change to toher formats
     with open('uploads/enc_key_file', 'wb+') as destination: #Modify wb
-        print(key_is_file)
         if(key_is_file):
             for chunk in files['key_file'].chunks():
                 destination.write(chunk)
         else:
-            destination.write(args['keytext'].encode('utf-8')) #Remove encode
+            if args['keytext'].isnumeric():
+                # Note: 196-bits is AES max -> 24 bytes key
+                destination.write(int(args['keytext']).to_bytes(24, 'big'))
+            else: 
+                destination.write(args['keytext'].encode('utf-8')) #Remove encode
 
     # Write the plain file (BYTES): Can change to toher formats
     with open('uploads/enc_plain_file', 'wb+') as destination: #Modify wb
-        print(input_is_file)
         if(input_is_file):
             for chunk in files['plain_file'].chunks():
                 destination.write(chunk)
         else:
             destination.write(args['plaintext'].encode('utf-8')) #Remove encode
     
-    # results = ENC_ALGO[algorithm](input_text, input_file, method) # In file paths ONLY
+    results = ENC_ALGO[algorithm]('uploads/enc_plain_file', 'uploads/enc_key_file', method) # In file paths ONLY
 
     #If necessary, can read the results files or hoever results are returned
 
@@ -104,7 +106,7 @@ def enc_result(request: WSGIRequest):
             'algorithm': algorithm,
             'method': method,
             'method_display': method_display,
-            # 'results': results
+            'results': results
         }
     )
 
@@ -158,12 +160,13 @@ def result(request: WSGIRequest):
     )
 
 def download_file(request, filepath):
-    path = open(filepath, 'r')
+    name = os.path.basename(filepath)
+    path = open(filepath, 'rb')
     # Set the mime type
     mime_type, _ = mimetypes.guess_type(filepath)
     # Set the return value of the HttpResponse
     response = HttpResponse(path, content_type=mime_type)
     # Set the HTTP header for sending to browser
-    response['Content-Disposition'] = f"attachment; filename=encoded"
+    response['Content-Disposition'] = f"attachment; filename={name}"
     # Return the response value
     return response
