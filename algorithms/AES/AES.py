@@ -147,39 +147,13 @@ def sbox_inverse_lookup(byte):
     return reverse_aes_sbox[x][y]
 
 
-'''
-def mul(a, b):
-
-    Multiplies two bytes together as elements of the galois field (mod 2^n)
-    :param a:
-    :param b:
-    :return:
-
-    if (a >127 and b > 127):
-        print(a, b)
-    p = 0x00
-    for i in range(8):
-        if b % 2 != 0:
-            p = p ^ a
-        h = a > 128
-        to_discard = a >> 7
-        to_discard = to_discard << 8
-        a = (a << 1) - to_discard
-
-        if h:
-            a = a ^ 0x1B
-        b = b >> 1
-    return p
-'''
-
-
 def byte(x, n=8):
     return format(x, f"0{n}b")
 
 
 def mul(a, b):
-    # this method for galois field 2^8 multiplication is not mine, abstract algebra is hard
-    # credit to
+    # this method for galois field of order 2^8 multiplication is not mine, abstract algebra is hard
+    # credit to https://medium.com/wearesinch/building-aes-128-from-the-ground-up-with-python-8122af44ebf9
     tmp = 0
     b_byte = bin(b)[2:]
     for i in range(len(b_byte)):
@@ -376,6 +350,7 @@ def generate_keys(original_key_words, N, R):
 
     return W
 
+
 def matrix_to_byte_list(matrix):
     byte_list = []
     for row in range(4):
@@ -383,6 +358,18 @@ def matrix_to_byte_list(matrix):
             byte_list.append(matrix[row][col])
     return byte_list
 
+
+def matrix_to_string(matrix):
+    string = "|"
+    for row in range(4):
+        for col in range(4):
+            string += str(matrix[row][col]) + "  "
+        if row != 3:
+            string += "|\n|"
+        else:
+            string += "|\n"
+
+    return string
 
 
 def encrypt_matrix(matrix, round_keys):
@@ -403,6 +390,59 @@ def encrypt_matrix(matrix, round_keys):
     return matrix
 
 
+def encrypt_matrix_with_steps(matrix, round_keys):
+    message1 = "AES is a single key algorithm that generates many round keys to use in various 'rounds' of the algorithm" \
+               "\nWe'll be showing what one round of the algorithm looks like on the first 16 bytes of the message" \
+               "\nThe first 16 bytes of text encoded into utf-8 are put into the matrix shown below\n" + matrix_to_string(matrix)
+    message2 = ""
+    message3 = ""
+    message4 = ""
+    message5 = ""
+    message6 = ""
+
+    # first round
+    matrix = apply_key(matrix, round_keys, 0)
+
+    # rounds 1 through 11
+    for round in range(1, 11):
+        matrix = sub_bytes(matrix)
+        if round == 1:
+            message2 = "First, every byte in the matrix is put into a specific bijective function from the set of possible byte values" \
+                   " to the set of possible byte values. The bijective property is very useful because it" \
+                       " allows to undo this step by pluging a byte into the inverse of the function \n" + matrix_to_string(matrix)
+        matrix = shift_rows(matrix)
+        if round == 1:
+            message3 = "Then, the rows of the matrix are shifted by an amount equal to the index of the row " \
+                       "This can be easily undone with decrypting by shifting in the opposite direction " \
+                       "\n" + matrix_to_string(matrix)
+        matrix = mix_columns(matrix)
+        if round == 1:
+            message4 = "Then, the column vectors of the matrix are multiplied by a specific invertible matrix with elements " \
+                       "and operations in the galois field of order 2^8. This is an abstract algebra structure that defines" \
+                       " its own rules for multiplication and addition. This and the previous step both help to allow small changes" \
+                       " in the input text to have huge changes in the encrypted text" \
+                       " This can be undone during decryption by multiplying every column " \
+                       "by the inverse matrix\n" + matrix_to_string(matrix)
+        matrix = apply_key(matrix, round_keys, round)
+        if round == 1:
+            message5 = "Finally, the round key for this specific round is applied through an xor operation with the" \
+                       " bytes of the matrix, and we're done with this round" \
+                       " This can be undone during decryption by xoring with the key again, as the xor operation is its own" \
+                       " inverse\n" + matrix_to_string(matrix)
+
+    # round 12, final round
+    matrix = sub_bytes(matrix)
+    matrix = shift_rows(matrix)
+    matrix = apply_key(matrix, round_keys, 11)
+    message6 = "This process is repeated for 12 rounds total in our implementation, with small variations on the first and" \
+               " last rounds. Decryption is done by doing the inverse of every step as mentioned previously." \
+               " Here is the matrix at the end of all of the rounds, completely incomprehensible when compared to the originial" \
+               " matrix\n" + matrix_to_string(matrix)
+
+    steps = [{'msg':message1}, {'msg':message2}, {'msg':message3}, {'msg':message4}, {'msg':message5}, {'msg':message6}]
+    return matrix, steps
+
+
 def decrypt_matrix(matrix, round_keys):
     # revert round 12 first
     matrix = apply_key(matrix, round_keys, 11)
@@ -420,11 +460,14 @@ def decrypt_matrix(matrix, round_keys):
     matrix = apply_key(matrix, round_keys, 0)
     return matrix
 
-def encode_byte_list(bytes, key=[0,0,0,0,0,0]):
+def encode_byte_list(bytes, key=[0,0,0,0,0,0], return_explanation=False):
     '''
     takes in a list of bytes to encipher and a 6 character[byte] key
     returns an enciphered list of bytes
+    and now also returns a (results, steps) tuple *eye roll*
     '''
+    result_string = ""
+
     round_keys = generate_keys(key, 6, 12)
 
     byteroos = []
@@ -447,11 +490,20 @@ def encode_byte_list(bytes, key=[0,0,0,0,0,0]):
                     data_matrix[row][col] = bytes[bytes_encoded]
                 bytes_encoded -= -1
                 bytes_left -= 1
-        data_matrix = encrypt_matrix(data_matrix, round_keys)
+        if (bytes_encoded > 16):
+            data_matrix = encrypt_matrix(data_matrix, round_keys)
+        else:
+            data_matrix, steps = encrypt_matrix_with_steps(data_matrix, round_keys)
         bytes_to_append = matrix_to_byte_list(data_matrix)
         for byte in bytes_to_append:
             new_bytes_list.append(byte)
-    return new_bytes_list
+    result_string = "We started with needing to encrypt:", str(byteroos), "\nAnd encrypting, we end up with encrypted byt" \
+                                                                          "es:" + str(new_bytes_list)
+    bullshit_to_appease_group_members = {'string_text': result_string}
+    if return_explanation:
+        return new_bytes_list, (bullshit_to_appease_group_members, steps)
+    else:
+        return new_bytes_list
 
 
 def decode_byte_list(bytes, key=[0,0,0,0,0,0]):
@@ -495,14 +547,6 @@ def decode_byte_list(bytes, key=[0,0,0,0,0,0]):
     return new_bytes_list
 
 def main():
-
-    input_file = open("song.mp3", 'rb')
-    input_data = input_file.read()
-
-    byte_list = []
-    for i in range(len(input_data)):
-        byte_list.append(input_data[i])
-
     print("Type 'encrypt' if you want to encrypt something\n"
           "Type 'decrypt' if you want to decrypt something")
     encrypt_or_decrypt = input()
@@ -518,13 +562,6 @@ def main():
         print("Type 'string' to", encrypt_or_decrypt, "a string that you will type or paste here\n"
                         "Type 'file' to ", encrypt_or_decrypt, "that you will specify the path to\n")
         input_type = input()
-
-    print("Type 'yes pls' if you want to see a walkthrough of the algorithm\n"
-          "Type anything else if you just want to run the thing")
-    walkthrough_answer = input()
-    walkthrough = False
-    if walkthrough_answer == "yes pls":
-        walkthrough = True
 
     print("please enter an integer from 0 to 2^196. This will be your key")
     key_int = int(input())
@@ -598,6 +635,72 @@ def main():
             output_file.write(newFileByteArray)
 
             print("your decrypted file has been saved at")
+
+
+
+
+def run_the_algo(string_txt, is_filepath, show_steps):
+    key_int = 0
+    key = []
+    for i in range(6):
+        key.append(key_int & 0xFFFFFFFF)
+        key_int >> 32
+
+    #parse inputs
+    if not is_filepath:
+        output_file = open("output_file.txt", "w")
+        string = string_txt
+
+        #encrypt
+        data = string.encode("utf-8")
+        encoded_boi, tuple_boi = encode_byte_list(data, key)
+        output_string = ""
+        for byte in encoded_boi:
+            output_string += str(byte) + " "
+        output_file.write(output_string)
+
+        string_byte_array = string.split(" ")
+        byte_array = []
+        for string_byte in string_byte_array:
+            if string_byte != "":
+                byte_array.append(int(string_byte))
+        encoded_boi = decode_byte_list(byte_array, key)
+        output_string = (bytes(encoded_boi).decode("utf-8"))
+        output_file.write(output_string)
+
+    else:
+        file_string = string_txt()
+        input_file = open(file_string, 'rb')
+        input_data = input_file.read()
+        output_file = open("output_file.txt", "w")
+
+        byte_list = []
+        for i in range(len(input_data)):
+            byte_list.append(input_data[i])
+
+        encoded_boi, tuple_boi = encode_byte_list(byte_list, key)
+        output_string = ""
+        for byte in encoded_boi:
+            output_string += str(byte) + " "
+        output_file.write(output_string)
+
+        output_name = "decrypted" + file_string
+
+        input_file = open(output_file, 'r')
+        string = input_file.read()
+
+        string_byte_array = string.split(" ")
+        byte_array = []
+        for string_byte in string_byte_array:
+            if string_byte != "":
+                byte_array.append(int(string_byte))
+        encoded_boi = decode_byte_list(byte_array, key)
+
+        output_file = open(output_name, 'wb')
+        newFileByteArray = bytearray(encoded_boi)
+        output_file.write(newFileByteArray)
+
+    return tuple_boi
 
 
 if __name__ == "__main__":
