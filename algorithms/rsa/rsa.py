@@ -1,10 +1,11 @@
 import random
 import util
+import Input
 
 
 class RSA:
 
-    def __init__(self, size=20):
+    def __init__(self, size=1024):
         self.bit_size = size
 
         self.p = util.generate_prime(self.bit_size)
@@ -19,39 +20,98 @@ class RSA:
         self.public_key, self.private_key = self.generate_keys()
 
     def generate_keys(self):
-        g = 0
-        while g != 1:
-            e = random.randint(2, self.phi - 1)
-            g = util.gcd(self.phi, e)
 
-        d = util.mult_inverse(e, self.n)
+        e = random.randint(2, self.phi - 1)
+        while util.gcd(self.phi, e) != 1:
+            e = random.randint(2, self.phi - 1)
+
+        try:
+            d = pow(e, -1, self.phi)
+        except:
+            d = util.mult_inverse(e, self.phi)
 
         public_key = (e, self.n)
         private_key = (d, self.n)
 
         return public_key, private_key
 
-    def encrypt(self, m: int, key):
-        e, n = key
-        c = util.mod_exp(m, e, n)
-        return c
+    def encrypt(self, input, is_file=False, show_steps=False):
+        def preprocess(input):
+            if isinstance(input, str):
+                Input.input_type = "string"
+                return util.x_to_int(input)
+            elif isinstance(input, bytes):
+                Input.input_type = "bytes"
+                return util.x_to_int(input)
+            elif isinstance(input, int):
+                Input.input_type = "int"
+                return input
+            else:
+                raise TypeError("Not allowed type")
 
-    def decrypt(self, c: int):
+        m_list = []
+
+        if is_file:
+            with open(input, "r") as f:
+                while True:
+                    chunk = f.read(256)
+                    if not chunk:
+                        break
+                    m = preprocess(chunk)
+                    m_list.append(m)
+
+        else:
+            m_list.append(preprocess(input))
+
+        try:
+            for m in m_list:
+                assert m.bit_length() <= self.n.bit_length()
+        except AssertionError:
+            raise AssertionError("Message is too long")
+
+        e, n = self.public_key
+        c_list = []
+        for m in m_list:
+            c = pow(m, e, n)
+            c_list.append(c)
+        return c_list
+
+    def decrypt(self, c_list: list):
+        def postprocess(output):
+            if Input.input_type == "string":
+                return util.int_to_bytes(output).decode()
+            elif Input.input_type == "bytes":
+                return util.int_to_bytes(output)
+            elif Input.input_type == "int":
+                return output
+
         d, n = self.private_key
-        p = util.mod_exp(c, d, n)
-        return p
+
+        p_list = []
+
+        for c in c_list:
+            p = pow(c, d, n)
+            p_list.append(postprocess(p))
+
+        if len(p_list) != 1:
+            val = ""
+            for plaintext in p_list:
+                val += plaintext
+            return val
+
+        return p_list[0]
+
+    def rsa(self, input, is_file=False, show_steps=False):
+        if is_file:
+            cipher = self.encrypt(input, is_file=True)
+            print(cipher)
+            print(self.decrypt(cipher))
+        else:
+            cipher = self.encrypt(input, is_file=False)
+            print(cipher)
+            print(self.decrypt(cipher))
 
 
 if __name__ == '__main__':
-
-    rsa = RSA()
-    m = util.string_to_long("hello world")
-    c = RSA.encrypt(rsa, m, rsa.public_key)
-    p = RSA.decrypt(rsa, c)
-    print("Message: hello world")
-    print("Public key:", rsa.public_key)
-    print("Private key:", rsa.private_key)
-    print("Message int:", m)
-    print("Ciphertext:", c)
-    print("Plaintext int:", p)
-    print("Decrypted plaintext:", util.long_to_bytes(p)) #this returns bytes rn, need a string
+    message = "C:/Users/16507/Documents/ComputerSecurity/csds444-final-project/algorithms/rsa/test.txt"
+    RSA().rsa(message, is_file=True)

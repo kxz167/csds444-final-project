@@ -1,5 +1,4 @@
 import random
-import math
 from struct import pack, unpack
 
 
@@ -10,11 +9,15 @@ def gcd(a, b):
 
 
 def egcd(a, b):
-    if a == 0:
-        return (b, 0, 1)
-    else:
-        g, x, y = egcd(b % a, a)
-        return g, y - (b // a) * x, x
+    """
+    Source: https://en.wikibooks.org/wiki/Algorithm_Implementation/Mathematics/Extended_Euclidean_algorithm#Iterative_algorithm_3
+    """
+    x0, x1, y0, y1 = 0, 1, 1, 0
+    while a != 0:
+        (q, a), b = divmod(b, a), a
+        y0, y1 = y1, y0 - q * y1
+        x0, x1 = x1, x0 - q * x1
+    return b, x0, y0
 
 
 def mult_inverse(e, n):
@@ -25,34 +28,61 @@ def mult_inverse(e, n):
         return x % n
 
 
-def is_prime(x):
-    if x == 2:
+def is_prime_miller(n, k=4):
+    """
+    Source: https://gist.github.com/Ayrx/5884790
+    4 rounds justified by: https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf#page=80
+    """
+    if n == 2:
         return True
-    elif x < 2 or x % 2 == 0:
+
+    if n == 1 or n % 2 == 0:
         return False
-    for i in range(3, int(math.sqrt(x) + 2), 2):
-        if x % i == 0:
+
+    r, s = 0, n - 1
+    while s % 2 == 0:
+        r += 1
+        s //= 2
+    for _ in range(k):
+        a = random.randint(2, n - 1)
+        x = pow(a, s, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(r):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
             return False
     return True
 
 
-def generate_prime(keysize=5):
-    num = random.randint(2 ** (keysize - 1), 2 ** (keysize))
+def generate_prime(keysize=2048):
+    num = random.getrandbits(keysize)
+    if not num & 1:
+        num += 1
     while True:
-        if is_prime(num):
+        if is_prime_miller(num):
             return num
         else:
-            num = num + 1
+            num = num + 2
 
 
-def string_to_long(m):
+def x_to_int(m):
     """Reference https://github.com/dlitz/pycrypto/blob/master/lib/Crypto/Util/number.py"""
 
     acc = 0
     length = len(m)
+
     if length % 4:
         extra = (4 - length % 4)
-        m = bytes('\000', encoding='utf8') * extra + bytes(m, encoding='utf8')
+        if isinstance(m, str):
+            m = bytes('\000', encoding='utf8') * extra + bytes(m, encoding='utf8')
+        elif isinstance(m, bytes):
+            m = bytes('\000', encoding='utf8') * extra + m
+    else:
+        if isinstance(m, str):
+            m = bytes(m, encoding='utf8')
 
     for i in range(0, length, 4):
         acc = (acc << 32) + unpack('>I', m[i:i + 4])[0]
@@ -60,7 +90,7 @@ def string_to_long(m):
     return acc
 
 
-def long_to_bytes(num):
+def int_to_bytes(num):
     """Reference https://github.com/dlitz/pycrypto/blob/master/lib/Crypto/Util/number.py"""
 
     s = bytes('', encoding='utf8')
@@ -74,22 +104,3 @@ def long_to_bytes(num):
             break
         i += 1
     return s[i:]
-
-
-def mod_exp(a, e, p):
-    ans = 1
-    a = a % p
-
-    if a == 0:
-        return 0
-
-    while e > 0:
-        if (e % 2) == 0:
-            e = e / 2
-            a = (a * a) % p
-
-        else:
-            ans = (ans * a) % p
-            e = e - 1
-
-    return ans

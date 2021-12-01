@@ -11,9 +11,7 @@ from mod import Mod
 from math import ceil
 
 from algorithms.sha2.sha256 import *
-
-# will be deleted when AES integrated
-from cryptography.fernet import Fernet
+from algorithms.AES.AES import *
 
 EllipticCurve = collections.namedtuple('EllipticCurve', 'name p a b g n h')
 
@@ -22,7 +20,6 @@ class HMAC:
 
     def __init__(self, key):
 
-        #book keeping
         self.block_size = 64
         self.output_size = 32
         self.ipad = b'\x36' * self.block_size
@@ -43,7 +40,6 @@ class HMAC:
         self.h2.update(xor(self.key, self.opad))
         self.finalized = False
 
-
     def update(self, message):
         self.h1.update(message)
 
@@ -56,7 +52,6 @@ class HMAC:
         return self.h2.digest()
 
 
-
 def sha256(data):
     """
     :param data: bytes-like
@@ -66,30 +61,32 @@ def sha256(data):
     h_sha256.update(data)
     return h_sha256.hexdigest()
 
-# TEMPORARY: replace with group's AES once done
-def fernet_encrypt(m, key):
+
+def encrypt(m, key):
     """
     :param m: message, bytes-like
-    :param key: cryptographic key
+    :param key: cryptographic key (assumed 192 bits)
     :returns: ciphertext
     """
-    f = Fernet(key)
-    return f.encrypt(m)
+    if len(key) != 192:
+        raise ValueError("Key must be 192-bit for AES")
+    return encode_byte_list(list(m), list(key))
 
-# TEMPORARY: replace with group's AES once done
-def fernet_decrypt(c, key):
+
+def decrypt(c, key):
     """
     :param c: ciphertext, bytes-like
-    :param key: cryptographic key
+    :param key: cryptographic key (assumed 192 bits)
     :returns: plaintext
     """
-    f = Fernet(key)
-    return f.decrypt(c)
+    if len(key) != 192:
+        raise ValueError("Key must be 192-bit for AES")
+    return decode_byte_list(list(c), list(key))
 
 
-def generate_keys(curve):
+def generate_key(curve):
     num = secrets.randbelow(curve.n - 1) + 1
-    return double_and_add(num, curve.g, curve), num
+    return num
 
 
 def point_add(point_1, point_2, curve):
@@ -174,7 +171,8 @@ def parse_string(s, is_filePath=False):
     return R, eval(tokens[2]), eval(tokens[3])
 
 
-def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, encrypt_func=fernet_encrypt, is_filepath=False, file_name=None):
+def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, data, encrypt_func=encrypt, is_filepath=False,
+            file_name=None):
     """
     :param m: message to encrypt
     :param curve: elliptic curve
@@ -184,44 +182,50 @@ def encrypt(m, curve, pub_key, sym_enc_key_size, mac_key_size, encrypt_func=fern
     :param encrypt_func: function to perform encoding using generated key
     :returns: tuple: (point_on_curve, ciphertext, MAC)
     """
-    R, r = generate_keys(curve)
-    sym_enc_key, mac_key = keys_from_point(r, pub_key, curve, sym_enc_key_size, mac_key_size)
-    sym_enc_key = base64.b64encode(sym_enc_key)
+    r = generate_key(curve)
+    R = double_and_add(r, curve.g, curve)
+    data['random_number'] = r
+    data['random_number_EC_point'] = R
+    sym_enc_key, mac_key, data = keys_from_point(r, pub_key, curve, sym_enc_key_size, mac_key_size, data)
     hmac = HMAC(mac_key)
 
     if is_filepath:
         if file_name is None:
             raise ValueError("Must choose a name for the output file.")
+        data['ciphertext'] = file_name
         out = open(file_name, 'wb')
         with open(m, 'rb') as file:
             chunk = 0
             while chunk != b'':
                 chunk = file.read(-1)
                 c = encrypt_func(chunk, sym_enc_key)
-                out.write(c)
-                hmac.update(c)
+                out.write(bytes(c))
+                hmac.update(bytes(c))
             file.close()
         out.close()
         tag = base64.b64encode(hmac.digest())
-        return str(R[0]) + '&' + str(R[1]) + '&' + file_name + '&' + str(tag)
+        data['mac_tag'] = tag
+        return str(R[0]) + '&' + str(R[1]) + '&' + file_name + '&' + str(tag), data
     else:
         c = encrypt_func(m, sym_enc_key)
         hmac = HMAC(mac_key)
-        hmac.update(c)
+        hmac.update(bytes(c))
+        data['ciphertext'] = bytes(c)
         tag = base64.b64encode(hmac.digest())
-        return str(R[0]) + '&' + str(R[1]) + '&' + str(c) + '&' + str(tag)
+        data['mac_tag'] = tag
+        return str(R[0]) + '&' + str(R[1]) + '&' + str(c) + '&' + str(tag), data
 
 
-def decrypt(cipherstring, curve, priv_key, sym_enc_key_size, mac_key_size, decrypt_func=fernet_decrypt, is_filepath=False, file_name=None):
-
+def decrypt(cipherstring, curve, priv_key, sym_enc_key_size, mac_key_size, data, decrypt_func=decrypt,
+            is_filepath=False, file_name=None):
     R, c, tag = parse_string(cipherstring, is_filepath)
-    sym_enc_key, mac_key = keys_from_point(priv_key, R, curve, sym_enc_key_size, mac_key_size)
-    sym_enc_key = base64.b64encode(sym_enc_key)
+    sym_enc_key, mac_key, data = keys_from_point(priv_key, R, curve, sym_enc_key_size, mac_key_size, data)
     hmac = HMAC(mac_key)
 
     if is_filepath:
         if file_name is None:
             raise ValueError("Must choose a name for the output file.")
+        data['plaintext'] = file_name
         out = open(file_name, 'wb')
         try:
             with open(c, 'rb') as file:
@@ -230,7 +234,7 @@ def decrypt(cipherstring, curve, priv_key, sym_enc_key_size, mac_key_size, decry
                 while chunk != b'':
                     hmac.update(chunk)
                     m = decrypt_func(chunk, sym_enc_key)
-                    out.write(m)
+                    out.write(bytes(m))
                     chunk = file.read(-1)
                 file.close()
             out.close()
@@ -240,25 +244,30 @@ def decrypt(cipherstring, curve, priv_key, sym_enc_key_size, mac_key_size, decry
         d = base64.b64encode(hmac.digest())
         if d != tag:
             raise AssertionError("Computed MAC and received MAC do not match.")
-        return file_name
+        return file_name, data
     else:
-        hmac.update(c)
+        hmac.update(bytes(c))
         d = base64.b64encode(hmac.digest())
         if d != tag:
             raise AssertionError("Computed MAC and received MAC do not match.")
         m = decrypt_func(c, sym_enc_key)
-        return m
+        data['plaintext'] = bytes(m).decode('utf-8').rstrip('\x00')
+        return m, data
 
 
-def keys_from_point(n, key, curve, sym_enc_key_size, mac_key_size):
+def keys_from_point(n, key, curve, sym_enc_key_size, mac_key_size, data):
     P = double_and_add(n, key, curve)
+    data['shared_secret_point'] = P
     S = P[0].to_bytes((P[0].bit_length() + 7) // 8, byteorder='big')
+    data['shared_secret'] = S
     key = hkdf(sym_enc_key_size + mac_key_size, S)
     # symmetric encryption key
     sym_enc_key = key[0:sym_enc_key_size]
+    data['sym_enc_key'] = sym_enc_key
     # MAC key
     mac_key = key[sym_enc_key_size:]
-    return sym_enc_key, mac_key
+    data['mac_key'] = mac_key
+    return sym_enc_key, mac_key, data
 
 
 def ecies(m, is_filepath=False):
@@ -278,30 +287,86 @@ def ecies(m, is_filepath=False):
         h=1,
     )
 
-    pub_key, priv_key = generate_keys(curve)
-    print("Public Key: " + str(pub_key))
-    print("Private Key: " + str(priv_key))
+    data = {'prime': curve.p, 'a': curve.a, 'b': curve.b, 'generator': curve.g, 'subgroup_order': curve.n,
+            'subgroup_cofactor': curve.h, 'public_key': None, 'private_key': None, 'random_number': None,
+            'random_number_EC_point': None, 'shared_secret_point': None, 'shared_secret': None,
+            'sym_enc_key': None, 'mac_key': None, 'mac_tag': None, 'ciphertext': None, 'plaintext': None,
+            'is_filepath': is_filepath}
+
+    priv_key = generate_key(curve)
+    pub_key = double_and_add(priv_key, curve.g, curve)
+    data['public_key'] = str(pub_key)
+    data['private_key'] = str(priv_key)
 
     if is_filepath:
-        cstring = encrypt(m, curve, pub_key, 32, 32, is_filepath=True, file_name='encrypted')
+        cstring, data = encrypt(m, curve, pub_key, 192, 32, data, is_filepath=True, file_name='encrypted')
         R, c, tag = parse_string(cstring, is_filePath=True)
-        print("Point: " + str(R))
-        print("Ciphertext filepath: " + str(c))
-        print("MAC: " + str(tag))
-        res = decrypt(cstring, curve, priv_key, 32, 32, is_filepath=True, file_name='decrypted')
-        print("Plaintext filepath: " + res)
-
-        return
-        #TODO: make this work for large files
+        res, data = decrypt(cstring, curve, priv_key, 192, 32, data, is_filepath=True, file_name='decrypted')
     else:
-        cstring = encrypt(m, curve, pub_key, 32, 32)
+        cstring, data = encrypt(m, curve, pub_key, 192, 32, data)
         R, c, tag = parse_string(cstring)
-        print("Point: " + str(R))
-        print("Ciphertext: " + str(c))
-        print("MAC: " + str(tag))
-        res = decrypt(cstring, curve, priv_key, 32, 32)
-        print("Plaintext: " + str(res.decode('utf-8')))
+        res, data = decrypt(cstring, curve, priv_key, 192, 32, data)
+    return data
 
 
+def to_string(data):
+    """
+    :param data: dictionary of all important info from encryption/decryption process
+    :returns: (results, steps)
+    """
+    results = {
+        'string_text': data['plaintext']
+    }
+    if data['is_filepath']:
+        results['file'] = {
+            'encrypted': 'encrypted',
+            'decrypted': 'decrypted'
+        }
+    step1 = {
+        'msg': 'Below are the details of the elliptic curve (y^3 = x^2 + ax + b (mod p)) used for encryption.',
+        'substeps': ['prime: ' + str(data['prime']) + ', a: ' + str(data['a'] )+ ', b: ' + str(data['b']) +
+                     ', generator point: ' + str(data['generator']) + ', order of subgroup: ' +
+                     str(data['subgroup_order']) + ', cofactor of subgroup: ' + str(data['subgroup_cofactor'])]
+    }
 
+    step2 = {
+        'msg': 'Let Alice be the sender, and Bob the receiver. Bob\'s private key is derived by picking a number ' +
+               'uniformly at random between 1 and the subgroup order. Call this number \'kb\'. His public key, KB, is' +
+               ' a point on the elliptic curve with rational coefficients, obtained by adding the generator point to' +
+               'itself kb times. Note that the rational points on an elliptic curve form a group under addition:' +
+               ' adding two points with rational coefficients on the curve produces a third on the curve. Alice reads' +
+               ' KB from a public ledger.',
+        'substeps': ['kb: ' + str(data['public_key']) + ', KB: ' + str(data['private_key'])]
+    }
 
+    step3 = {
+        'msg': 'Alice generates a random number r and the associated point R, identically to how Bob derived his keys' +
+               '. Then, Alice adds Bob\'s public key to itself r times, generating a point P on the curve. The x ' +
+               'coordinate of this point is the shared secret, S. This shared secret is the input to the key ' +
+               'derivation function (KDF), which computes both the symmetric encryption key and the message' +
+               ' authentication code (MAC) key.',
+        'substeps': ['r: ' + str(data['random_number']) + ', R: ' + str(data['random_number_EC_point']) + ', P: ' +
+                     str(data['shared_secret_point']) + ', S: ' + str(data['shared_secret']) + ', symmetric encryption' +
+                     ' key: ' + str(data['sym_enc_key']) + ', MAC key: ' + str(data['mac_key'])]
+    }
+
+    step4 = {
+        'msg': 'The symmetric encryption key is used to encrypt the plaintext using AES, while the MAC key is used by' +
+               ' the HMAC algorithm to compute the MAC tag, which verifies the authenticity of the message. Alice' +
+               ' broadcasts her point R, the ciphertext (c), and the MAC to Bob: R||c||MAC',
+        'substeps': [('ciphertext: ' + str(data['ciphertext']) + ', ' if not data['is_filepath'] else '') + 'MAC: ' +
+                     str(data['mac_tag'])]
+    }
+
+    step5 = {
+        'msg': 'Bob receives R||c||MAC from Alice and parses it. He derived the shared secret S = P_x, where ' +
+               'P = (P_x, P_y) = r * KB. This is the same as the one Alice computed, since P = kb * R = kb * r * G =' +
+               ' r * kb * G = r * KB. Using S, Bob can derive the symmetric encryption keys and MAC keys the same way' +
+               ' Alice did. Bob computes the MAC using the MAC key, and checks to make sure they match. If they do, ' +
+               'Bob uses AES to decrypt the ciphertext with the symmetric encryption key he derived.',
+        'substeps': [('plaintext: ' + str(data['plaintext']) if not data['is_filepath'] else '')]
+    }
+
+    steps = [step1, step2, step3, step4, step5]
+
+    return results, steps

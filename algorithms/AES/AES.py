@@ -178,6 +178,8 @@ def byte(x, n=8):
 
 
 def mul(a, b):
+    # this method for galois field 2^8 multiplication is not mine, abstract algebra is hard
+    # credit to
     tmp = 0
     b_byte = bin(b)[2:]
     for i in range(len(b_byte)):
@@ -428,12 +430,10 @@ def encode_byte_list(bytes, key=[0,0,0,0,0,0]):
     byteroos = []
     for byte in bytes:
         byteroos.append(byte)
-    print(byteroos)
 
     bytes_left = len(bytes)
     new_bytes_list = []
     bytes_encoded = 0
-    print(round_keys)
 
     while bytes_left > 0:
         # make data matrix
@@ -485,15 +485,119 @@ def decode_byte_list(bytes, key=[0,0,0,0,0,0]):
 
         for byte in bytes_to_append:
             new_bytes_list.append(byte)
-    print(new_bytes_list)
+    '''
+    for i in range(len(new_bytes_list) - 1, 0, -1):
+        if new_bytes_list[i] == 0:
+            new_bytes_list.pop(i)
+        else:
+            break
+    '''
     return new_bytes_list
 
 def main():
-    string = "\"Hello cat uwu\" said the person to the cat"
-    data = string.encode("latin1")
-    encoded_boi = encode_byte_list(data)
-    new_data = decode_byte_list(encoded_boi)
-    print(bytes(new_data).decode("latin1"))
+
+    input_file = open("song.mp3", 'rb')
+    input_data = input_file.read()
+
+    byte_list = []
+    for i in range(len(input_data)):
+        byte_list.append(input_data[i])
+
+    print("Type 'encrypt' if you want to encrypt something\n"
+          "Type 'decrypt' if you want to decrypt something")
+    encrypt_or_decrypt = input()
+    while encrypt_or_decrypt != 'encrypt' and encrypt_or_decrypt != 'decrypt':
+        print("Type 'encrypt' if you want to encrypt something\n"
+              "Type 'decrypt' if you want to decrypt something)")
+        input_type = input()
+
+    print("Type 'string' to",encrypt_or_decrypt, "a string that you will type or paste here\n"
+          "Type 'file' to ", encrypt_or_decrypt, "that you will specify the path to\n")
+    input_type = input()
+    while input_type != 'string' and input_type != 'file':
+        print("Type 'string' to", encrypt_or_decrypt, "a string that you will type or paste here\n"
+                        "Type 'file' to ", encrypt_or_decrypt, "that you will specify the path to\n")
+        input_type = input()
+
+    print("Type 'yes pls' if you want to see a walkthrough of the algorithm\n"
+          "Type anything else if you just want to run the thing")
+    walkthrough_answer = input()
+    walkthrough = False
+    if walkthrough_answer == "yes pls":
+        walkthrough = True
+
+    print("please enter an integer from 0 to 2^196. This will be your key")
+    key_int = int(input())
+    print("Your key is", key_int)
+    key = []
+    for i in range(6):
+        key.append(key_int & 0xFFFFFFFF)
+        key_int >> 32
+
+    #parse inputs
+    if input_type == "string":
+        output_file = open("output_file.txt", "w")
+        print("Please enter the string you want to", encrypt_or_decrypt)
+        string = input()
+        if encrypt_or_decrypt == "encrypt":
+            data = string.encode("utf-8")
+            encoded_boi = encode_byte_list(data, key)
+            output_string = ""
+            for byte in encoded_boi:
+                output_string += str(byte) + " "
+            output_file.write(output_string)
+            print("here's your encoded string. It is also stored in output_file.txt")
+            print(output_string)
+        if encrypt_or_decrypt == "decrypt":
+            string_byte_array = string.split(" ")
+            byte_array = []
+            for string_byte in string_byte_array:
+                if string_byte != "":
+                    byte_array.append(int(string_byte))
+            encoded_boi = decode_byte_list(byte_array, key)
+            output_string = (bytes(encoded_boi).decode("utf-8"))
+            output_file.write(output_string)
+            print("here's your decoded string. It is also stored in output_file.txt")
+            print(output_string)
+
+    if input_type == "file":
+        print("Please enter the file name you want to", encrypt_or_decrypt + ". eg. song.mp3")
+        file_string = input()
+        if encrypt_or_decrypt == "encrypt":
+            input_file = open(file_string, 'rb')
+            input_data = input_file.read()
+            output_file = open("output_file.txt", "w")
+
+            byte_list = []
+            for i in range(len(input_data)):
+                byte_list.append(input_data[i])
+
+            encoded_boi = encode_byte_list(byte_list, key)
+            output_string = ""
+            for byte in encoded_boi:
+                output_string += str(byte) + " "
+            output_file.write(output_string)
+            print("Your encrypted data is stored in output_file.txt\n"
+                  "You can decrypt it by specifying the file name in this tool later")
+        if encrypt_or_decrypt == "decrypt":
+            print("type the name you want the file to have when output: (eg. song.mp3)")
+            output_name = input()
+
+            input_file = open(file_string, 'r')
+            string = input_file.read()
+
+            string_byte_array = string.split(" ")
+            byte_array = []
+            for string_byte in string_byte_array:
+                if string_byte != "":
+                    byte_array.append(int(string_byte))
+            encoded_boi = decode_byte_list(byte_array, key)
+
+            output_file = open(output_name, 'wb')
+            newFileByteArray = bytearray(encoded_boi)
+            output_file.write(newFileByteArray)
+
+            print("your decrypted file has been saved at")
 
 
 if __name__ == "__main__":
