@@ -7,7 +7,10 @@ from django.template import loader
 from django.shortcuts import render
 from django import forms
 
-from .visuals.sha256_visuals import sha_visual
+from .visuals.visuals import sha256_visual, sha512_visual
+import os
+import mimetypes
+from django.conf import settings
 
 ENCRYPTION_TYPES = (
     ("1", "SHA256"),
@@ -29,9 +32,9 @@ FILE_ALGO = {
     # "ecies": ,
 }
 
-TEXT_ALGO = {
-    # "sha256": ,
-    # "sha512": ,
+ALGO = {
+    "sha256": sha256_visual,
+    "sha512": sha512_visual,
     # "aes": ,
     # "rsa": ,
     # "ecies": ,
@@ -59,10 +62,8 @@ def result(request: WSGIRequest):
 
     input_type = args['formType']
     if(input_type == "text"):
-        # This is a text
         input_text = args['plaintext']
-        # parsed_steps = TEXT_ALGO[algorithm](input_text)
-        parsed_steps = sha_visual(bytes(input_text, 'utf-8')) # Test, use line above when loaded
+        results, parsed_steps = ALGO[algorithm](input_text, is_file=False, showstep=showstep)
     else:
         # This is a file
         # Upload the file to 'uploads/plain_file'
@@ -70,7 +71,14 @@ def result(request: WSGIRequest):
             for chunk in files['plain_file'].chunks():
                 destination.write(chunk)
         
-        parsed_steps = FILE_ALGO[algorithm]('uploads/plain_file') # Must load algorithms
+        results, parsed_steps = ALGO[algorithm]('uploads/plain_file', is_file=True, showstep=showstep) # Must load algorithms
+
+    # print(algorithm)
+    # print(showstep)
+    # print(type(showstep))
+
+    # print(args)
+    # print(files)
 
     return render(request, 'cryptography/results.html', {
             # 'resultForm': results,
@@ -79,5 +87,17 @@ def result(request: WSGIRequest):
             'algorithm': algorithm,
             'showstep': showstep,
             'input_type': input_type,
+            'results': results
         }
     )
+
+def download_file(request, filepath):
+    path = open(filepath, 'r')
+    # Set the mime type
+    mime_type, _ = mimetypes.guess_type(filepath)
+    # Set the return value of the HttpResponse
+    response = HttpResponse(path, content_type=mime_type)
+    # Set the HTTP header for sending to browser
+    response['Content-Disposition'] = f"attachment; filename=encoded"
+    # Return the response value
+    return response
