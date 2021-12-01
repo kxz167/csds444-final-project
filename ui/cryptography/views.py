@@ -96,7 +96,7 @@ def enc_result(request: WSGIRequest):
         else:
             destination.write(args['plaintext'].encode('utf-8')) #Remove encode
     
-    # results = ENC_ALGO[algorithm](input_text, input_file) # In file paths ONLY
+    # results = ENC_ALGO[algorithm](input_text, input_file, method) # In file paths ONLY
 
     #If necessary, can read the results files or hoever results are returned
 
