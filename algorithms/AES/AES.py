@@ -670,7 +670,7 @@ def run_the_algo(string_txt, is_filepath, show_steps):
         output_file.write(output_string)
 
     else:
-        file_string = string_txt()
+        file_string = string_txt
         input_file = open(file_string, 'rb')
         input_data = input_file.read()
         output_file = open("output_file.txt", "w")
@@ -684,9 +684,10 @@ def run_the_algo(string_txt, is_filepath, show_steps):
         for byte in encoded_boi:
             output_string += str(byte) + " "
         output_file.write(output_string)
+        output_file.close()
 
         output_name = "decrypted" + file_string
-        input_file = open(output_file, 'r')
+        input_file = open("output_file.txt", 'r')
         string = input_file.read()
 
         string_byte_array = string.split(" ")
@@ -705,4 +706,4 @@ def run_the_algo(string_txt, is_filepath, show_steps):
 
 
 if __name__ == "__main__":
-    run_the_algo("test", False, True)
+    run_the_algo("yup.mp3", True, True)
