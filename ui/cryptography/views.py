@@ -45,6 +45,11 @@ ALGO = {
 def index(request):
     return render(request, 'cryptography/index.html', {})
 
+def tools(request):
+    True
+
+def tutorials(request):
+    True
 
 def text(request: WSGIRequest):
     return render(request, 'cryptography/text.html', {})
