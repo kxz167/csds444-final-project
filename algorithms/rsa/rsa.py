@@ -111,30 +111,30 @@ class RSA:
         results = {}
         mint_list, cipher = self.encrypt(input, is_file)
         plaintext = self.decrypt(cipher, is_file)
-        results['ciphertext and decrypted text'] = [cipher, plaintext]
+        results['string_text'] = 'Ciphertext: {}\n Plaintext: {}'.format(cipher, plaintext)
         if is_file:
             results['file'] = {'encrypted': 'encrypted.txt', 'decrypted': 'decrypted.txt'}
         step1 = {
             'msg': 'Below are the details of the keys and how they were generated',
-            'substeps': ['p: ', self.p, 'q:', self.q, 'n:', self.n, 'phi:', self.phi, 'public key:',
-                         self.public_key, 'private key:', self.private_key]
+            'substeps': ['p: {}\n'.format(self.p), 'q: {}\n'.format(self.q), 'n: {}\n'.format(self.n),
+                         'phi: {}\n'.format(self.phi),
+                         'Public Key: {}\n'.format(self.public_key), 'Private Key: {}\n'.format(self.private_key)]
         }
         step2 = {
             'msg': 'Below are the details of encryption with RSA',
-            'substeps': ['the message as integer:', mint_list, 'the public key:', self.public_key, 'the ciphertext',
-                         cipher]
+            'substeps': ['the message as integer:' + str(mint_list), 'the public key: ' + str(self.public_key),
+                         'the ciphertext: {}'.format(cipher)]
         }
         step3 = {
-            'msg': 'Below are the details of encryption with RSA',
-            'substeps': ['the ciphertext:', cipher, 'the private key:', self.private_key, 'the decrypted message',
+            'msg': 'Below are the details of decryption with RSA',
+            'substeps': ['the ciphertext: {}'.format(cipher), 'the private key: ' + str(self.private_key),
+                         'the decrypted message: ' +
                          plaintext]
         }
         steps = [step1, step2, step3]
-        print(results)
-        print(steps)
         return results, steps
 
 
 if __name__ == '__main__':
-    message = "C:/Users/16507/Documents/ComputerSecurity/csds444-final-project/algorithms/rsa/test.txt"
-    RSA().rsa(message, is_file=False)
+    message = "C:/Users/stama/ComputerSecurity/csds444-final-project/algorithms/rsa/wiki"
+    RSA().rsa(message, is_file=True)

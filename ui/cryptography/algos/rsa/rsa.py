@@ -124,7 +124,7 @@ class RSA:
             'substeps': ['the message as integer:' + str(mint_list), 'the public key: ' + str(self.public_key), 'the ciphertext: {}'.format(cipher)]
         }
         step3 = {
-            'msg': 'Below are the details of encryption with RSA',
+            'msg': 'Below are the details of decryption with RSA',
             'substeps': ['the ciphertext: {}'.format(cipher), 'the private key: '+ str(self.private_key), 'the decrypted message: '+
                          plaintext]
         }
