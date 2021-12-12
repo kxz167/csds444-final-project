@@ -10,9 +10,6 @@ import base64
 from mod import Mod
 from math import ceil
 
-from algorithms.sha2.sha256 import *
-from algorithms.AES.AES import *
-
 EllipticCurve = collections.namedtuple('EllipticCurve', 'name p a b g n h')
 
 
