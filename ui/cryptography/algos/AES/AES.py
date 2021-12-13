@@ -651,7 +651,7 @@ def run_the_algo(string_txt, is_filepath, show_steps):
 
     #parse inputs
     if not is_filepath:
-        output_file = open("encrypted_output_file.txt", "w")
+        output_file = open("uploads/encrypted_output_file.txt", "w")
         string = string_txt
 
         #encrypt
@@ -676,7 +676,7 @@ def run_the_algo(string_txt, is_filepath, show_steps):
         file_string = string_txt
         input_file = open(file_string, 'rb')
         input_data = input_file.read()
-        output_file = open("output_file.txt", "w")
+        output_file = open("uploads/output_file.txt", "w")
 
         byte_list = []
         for i in range(len(input_data)):
@@ -689,8 +689,14 @@ def run_the_algo(string_txt, is_filepath, show_steps):
         output_file.write(output_string)
         output_file.close()
 
-        output_name = "decrypted" + file_string
-        input_file = open("output_file.txt", 'r')
+        # output_name = "decrypted" + file_string
+        # This a hacky fix to handle directory paths
+
+        temp_dirs = file_string.split("/")
+        temp_dirs[-1] = "decrypted" + temp_dirs[-1]
+        output_name = "/".join(temp_dirs)
+
+        input_file = open("uploads/output_file.txt", 'r')
         string = input_file.read()
 
         string_byte_array = string.split(" ")
