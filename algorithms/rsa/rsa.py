@@ -54,7 +54,7 @@ class RSA:
         if is_file:
             with open(input, "r") as f:
                 while True:
-                    chunk = f.read(128)
+                    chunk = f.read(255)
                     if not chunk:
                         break
                     m = preprocess(chunk)
